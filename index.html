@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fix the Factory</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e13;--panel:#111821;--line:#243041;--ink:#eef3f8;--mute:#8a97a8;--s1:#3ddc84;--s2:#3aa8ff;--s3:#ffc93c;--red:#ff4d5e}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:Kanit,"Leelawadee UI","Noto Sans Thai",system-ui,sans-serif;color:var(--ink);user-select:none}
+body,button,.src{cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><path d='M4 3 L4 36 L13 28 L19 41 L25 38 L19 26 L31 26 Z' fill='white' stroke='black' stroke-width='2.5' stroke-linejoin='round'/></svg>") 4 3,auto}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;
+  background:radial-gradient(ellipse at 34% 50%,#15263a 0%,var(--bg) 62%)}
+button{font-family:inherit;border:0;color:inherit;background:none}
+
+/* top bar */
+header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:flex;align-items:center;padding:0 48px;gap:32px}
+.brand{display:flex;align-items:center;gap:16px;font-size:40px;font-weight:800;letter-spacing:.5px}
+.brand .dot{width:22px;height:22px;border-radius:50%;background:var(--s1);box-shadow:0 0 18px var(--s1)}
+.hud{margin-left:auto;display:flex;gap:18px}
+.pill{font-size:34px;font-weight:600;padding:8px 26px;border-radius:999px;background:var(--panel);border:2px solid var(--line);display:flex;gap:12px;align-items:center}
+.pill b{font-weight:800}
+#timePill.low{border-color:var(--red);color:var(--red);animation:pulse .5s infinite alternate}
+#budgetPill b{color:var(--s3)}
+#doneBtn{display:none;color:var(--s1);border-color:var(--s1)}
+.play #doneBtn{display:flex}
+#doneBtn:hover{background:var(--s1);color:#06210f}
+#lang{display:flex;border:2px solid var(--line);border-radius:999px;overflow:hidden;font-size:26px;font-weight:600}
+#lang span{padding:10px 22px;color:var(--mute)}
+#lang span.on{background:var(--ink);color:#0a0e13}
+
+/* scene */
+#scene{position:absolute;left:0;top:100px;width:1300px;height:970px}
+#world{transform-origin:650px 470px;transition:transform 2.8s cubic-bezier(.65,0,.25,1)}
+.zoom #world{transform:scale(.5) translateY(40px)}
+#outer{opacity:0;transition:opacity 1.6s 1s}
+.zoom #outer{opacity:1}
+#pins{transition:opacity .6s}
+.zoom #pins{opacity:0}
+.src{transition:filter .2s}
+.play .src:hover{filter:brightness(1.3) drop-shadow(0 0 14px rgba(255,77,94,.9))}
+.src.sel{filter:brightness(1.35) drop-shadow(0 0 16px #fff)!important}
+.src.fixed{filter:saturate(.5) drop-shadow(0 0 12px rgba(61,220,132,.8))}
+.src.fixed .puff{display:none}
+.puff{animation:puff 2.4s linear infinite;opacity:0}
+@keyframes puff{0%{transform:translate(0,0) scale(.4);opacity:0}15%{opacity:.75}100%{transform:translate(18px,-120px) scale(1.6);opacity:0}}
+.puff{transform-box:fill-box;transform-origin:center}
+.bub{animation:bub 1.8s ease-in infinite;transform-box:fill-box;transform-origin:center}
+@keyframes bub{0%{transform:scale(.2);opacity:0}50%{opacity:1}100%{transform:scale(1.4) translateY(-6px);opacity:0}}
+.src.fixed .bub{display:none}
+.pin{transition:transform .3s;cursor:inherit}
+.play .pin:hover{filter:brightness(1.2)}
+.pin .tag{font-weight:800;font-size:26px}
+.pinpulse{animation:pinp 1.2s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}
+@keyframes pinp{to{transform:scale(1.12)}}
+.q{font-weight:800}
+.lockq{animation:pinp 1s ease-in-out infinite alternate}
+
+/* panel */
+#panel{position:absolute;left:1316px;top:112px;width:570px;height:948px;display:flex;flex-direction:column;gap:16px}
+.card.meter{padding:16px 26px}
+#info{overflow:hidden}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:24px;padding:22px 26px}
+.meter .lbl{font-size:24px;color:var(--mute)}
+.meter .num{font-size:64px;font-weight:800;line-height:1.05;color:var(--red);transition:color .3s}
+.meter .num small{font-size:26px;color:var(--mute);font-weight:600;margin-left:8px}
+.meter .num.good{color:var(--s1)}
+.bar{height:22px;border-radius:12px;background:#1d2733;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--s1),var(--s3) 55%,var(--red));transition:width .6s cubic-bezier(.3,1.4,.5,1)}
+.board{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:16px;border:2px solid var(--c);transition:.4s}
+.row .no{width:46px;height:46px;border-radius:50%;border:3px solid var(--c);color:var(--c);display:grid;place-items:center;font-weight:800;font-size:26px;flex:none}
+.row .cells{display:flex;gap:6px;flex:1}
+.cell{flex:1;height:62px;border-radius:10px;border:2px solid color-mix(in srgb,var(--c) 45%,transparent);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;line-height:1.05;font-weight:600}
+.cell .ic{font-size:22px}
+.cell.fixed{background:color-mix(in srgb,var(--s1) 18%,transparent);color:var(--s1)}
+.cell.sel{border-color:#fff}
+.row .tot{width:84px;height:62px;border-radius:12px;background:var(--c);color:#0a0e13;display:grid;place-items:center;font-weight:800;font-size:28px;flex:none}
+.row.locked{opacity:.45;filter:saturate(.6)}
+.row.locked .cell,.row.locked .tot{font-size:30px}
+.tease .row.locked{opacity:1;filter:none;box-shadow:0 0 30px color-mix(in srgb,var(--c) 60%,transparent);animation:shake 2.4s ease-in-out infinite}
+@keyframes shake{0%,86%,100%{transform:none}89%{transform:translateX(-6px)}92%{transform:translateX(6px)}95%{transform:translateX(-4px)}}
+.rowtag{font-size:18px;color:var(--mute);margin:-4px 0 0 6px;display:flex;justify-content:space-between}
+#info{flex:1;display:flex;flex-direction:column;gap:8px}
+#info .hint{margin:auto;text-align:center;font-size:30px;color:var(--mute);line-height:1.35}
+#info .hint b{display:block;font-size:64px;animation:pinp .8s infinite alternate}
+#info h3{font-size:32px;font-weight:800;display:flex;gap:12px;align-items:center}
+#info .desc{font-size:22px;color:var(--mute)}
+#info .emit{font-size:26px}
+#info .emit b{color:var(--red)}
+.fix{margin-top:auto;border-radius:18px;border:2px dashed var(--s1);padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.fix .t{font-size:26px;font-weight:600;color:var(--s1)}
+.fix .stats{display:flex;gap:20px;font-size:26px}
+.fix .stats .cut{color:var(--s1);font-weight:800}
+.fix .stats .cost{color:var(--s3);font-weight:800}
+.btn{font-size:32px;font-weight:800;padding:14px 22px;border-radius:16px;background:var(--s1);color:#06210f;transition:transform .1s,filter .2s}
+.btn:hover{filter:brightness(1.15);transform:translateY(-2px)}
+.btn:disabled{background:#2a3442;color:var(--mute);transform:none;filter:none}
+.btn.ghost{background:transparent;border:2px solid var(--line);color:var(--ink);font-size:24px;padding:8px}
+.done-note{font-size:28px;color:var(--s1);font-weight:800;text-align:center}
+
+/* overlays */
+#attract,#endcard{position:absolute;inset:0;display:none;align-items:center;justify-content:center}
+.attract #attract{display:flex;background:linear-gradient(90deg,rgba(5,8,12,.86) 0,rgba(5,8,12,.55) 70%,rgba(5,8,12,.86))}
+#attract .box{text-align:center;max-width:1300px}
+#attract h1{font-size:120px;font-weight:800;line-height:1;letter-spacing:1px}
+#attract h1 em{font-style:normal;color:var(--s1);text-shadow:0 0 40px rgba(61,220,132,.6)}
+#attract p{font-size:40px;color:#c6d2df;margin:26px 0 54px}
+#attract .go{font-size:52px;padding:22px 70px;border-radius:999px;animation:pulse .9s infinite alternate}
+#attract .scopes{margin-top:54px;display:flex;justify-content:center;gap:22px;font-size:30px;font-weight:600}
+#attract .scopes span{padding:8px 24px;border-radius:999px;border:2px solid var(--c);color:var(--c)}
+@keyframes pulse{to{transform:scale(1.06)}}
+#banner{position:absolute;left:0;width:1300px;top:420px;text-align:center;font-size:96px;font-weight:800;pointer-events:none;opacity:0;transform:scale(.6);transition:.4s cubic-bezier(.3,1.6,.5,1);text-shadow:0 6px 30px #000}
+#banner.show{opacity:1;transform:none}
+#banner.win{color:var(--s1)}
+#banner.wait{color:var(--s3)}
+.end #endcard{display:block;pointer-events:none}
+.end #info{visibility:hidden}
+#endcard .box{pointer-events:auto;position:absolute;left:1316px;top:742px;width:570px;height:318px;background:rgba(10,14,19,.96);border:3px solid var(--s3);border-radius:24px;padding:22px 28px;display:flex;flex-direction:column;gap:12px;justify-content:center;box-shadow:0 0 60px rgba(255,201,60,.25);animation:rise .6s cubic-bezier(.3,1.4,.5,1)}
+@keyframes rise{from{transform:translateY(60px);opacity:0}}
+#endcard .grade{font-size:24px;color:var(--mute)}
+#endcard .grade b{display:inline;font-size:40px;margin:0 10px;color:var(--s1);line-height:1.1}
+#endcard .ask{font-size:34px;font-weight:800;line-height:1.2;color:var(--s3)}
+#endcard .ask small{display:block;font-size:24px;color:var(--mute);font-weight:400;margin-top:6px}
+#endcard .btn{font-size:26px;padding:10px}
+#confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#confetti i{position:absolute;top:-30px;width:14px;height:24px;border-radius:3px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(1150px) rotate(720deg)}}
+.float{position:absolute;font-size:56px;font-weight:800;color:var(--s1);pointer-events:none;animation:floatup 1.2s ease-out forwards;text-shadow:0 4px 20px #000}
+@keyframes floatup{to{transform:translateY(-110px);opacity:0}}
+</style>
+</head>
+<body>
+<div id="stage" class="attract">
+  <header>
+    <div class="brand"><span class="dot"></span><span data-i18n="title"></span></div>
+    <div class="hud">
+      <button class="pill" id="doneBtn" data-i18n="done"></button>
+      <div class="pill" id="timePill">⏱ <b id="time">45</b></div>
+      <div class="pill" id="budgetPill">💰 <span data-i18n="budget"></span> <b id="budget">70</b></div>
+    </div>
+    <button id="lang" title="TH / EN"><span data-l="th">ไทย</span><span data-l="en">EN</span></button>
+  </header>
+
+  <svg id="scene" viewBox="0 0 1300 970">
+    <g id="world"><g id="outer"></g><g id="plant"></g><g id="pins"></g></g>
+  </svg>
+
+  <aside id="panel">
+    <div class="card meter">
+      <div class="lbl" data-i18n="meter"></div>
+      <div class="num" id="total">100<small>tCO₂e</small></div>
+      <div class="bar"><i id="bar"></i></div>
+    </div>
+    <div class="card board" id="board"></div>
+    <div class="card" id="info"></div>
+  </aside>
+
+  <div id="banner"></div>
+  <div id="confetti"></div>
+
+  <div id="attract">
+    <div class="box">
+      <h1 data-i18n="bigTitle"></h1>
+      <p data-i18n="sub"></p>
+      <button class="btn go" id="startBtn" data-i18n="start"></button>
+      <div class="scopes">
+        <span style="--c:var(--s1)">Scope 1</span>
+        <span style="--c:var(--s2)">Scope 2 ?</span>
+        <span style="--c:var(--s3)">Scope 3 ?</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="endcard">
+    <div class="box">
+      <div class="grade"><b id="rank"></b><span id="cutLine"></span></div>
+      <div class="ask"><span data-i18n="ask"></span><small data-i18n="askSub"></small></div>
+      <button class="btn" id="againBtn" data-i18n="again"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- config (all numbers illustrative) ---------- */
+const PLAY_SECONDS = 45, BUDGET = 70, BASE = 100;
+const SRC = [
+  {id:'boiler', icon:'🔥', e:30, cut:22, cost:40},
+  {id:'truck',  icon:'🚚', e:18, cut:14, cost:30},
+  {id:'ac',     icon:'❄️', e:12, cut:10, cost:10},
+  {id:'lpg',    icon:'🛢️', e:8,  cut:6,  cost:15},
+  {id:'water',  icon:'💧', e:20, cut:16, cost:20},
+  {id:'gen',    icon:'⚡', e:12, cut:8,  cost:25},
+];
+
+const T = {
+  th:{
+    title:'ภารกิจลดคาร์บอนโรงงาน', budget:'งบ', meter:'Scope 1 · การปล่อยทางตรงของโรงงาน',
+    bigTitle:'ช่วย<em>โรงงาน</em>นี้ลดคาร์บอน!', sub:'คลิกแหล่งปล่อยมลพิษ แล้วเลือกวิธีแก้ ภายใน 45 วินาที ด้วยงบที่มีจำกัด',
+    start:'คลิกเพื่อเริ่ม', hint:'คลิกแหล่งปล่อยคาร์บอน<br>ในโรงงานด้านซ้าย', emits:'ปล่อย', fixIt:'แก้เลย',
+    noMoney:'งบไม่พอ', fixed:'✔ แก้แล้ว', done:'เสร็จแล้ว', locked:'ล็อกอยู่',
+    s1tag:'ภายในรั้วโรงงาน', s2tag:'???', s3tag:'???',
+    win:p=>`Scope 1 ลดลง ${p}%!`, none:'ยังไม่ได้ลดเลย!', wait:'แต่เดี๋ยวก่อน...',
+    q2:'ไฟฟ้าที่ใช้ มาจากไหน?', q3:'แล้วทุกอย่างนอกรั้วโรงงานล่ะ?', fence:'SCOPE 1 · ภายในรั้วโรงงาน',
+    yourRank:'ระดับของคุณ', cut:p=>`ลด Scope 1 ได้ ${p}%`,
+    ask:'Scope 2 และ 3 ยังซ่อนอยู่', askSub:'คุยกับทีมงานของเราเพื่อปลดล็อกส่วนที่ใหญ่ที่สุด', again:'เล่นอีกครั้ง',
+    ranks:['ลองอีกนิด','ทำได้ดี!','ฮีโร่ลดคาร์บอน!'],
+    src:{
+      boiler:['หม้อไอน้ำถ่านหิน','เผาถ่านหินเพื่อผลิตไอน้ำ','เปลี่ยนเป็นหม้อไอน้ำชีวมวล'],
+      truck:['รถบรรทุกของบริษัท','เผาน้ำมันดีเซลทุกเที่ยว','เปลี่ยนเป็นรถบรรทุก EV'],
+      ac:['สารทำความเย็นแอร์รั่ว','สารทำความเย็นเป็นก๊าซเรือนกระจกรุนแรง','ใช้สารทำความเย็น GWP ต่ำ'],
+      lpg:['รถยกใช้ก๊าซ LPG','เผาก๊าซ LPG ในรถยก','เปลี่ยนเป็นรถยกไฟฟ้า'],
+      water:['บ่อบำบัดน้ำเสีย','น้ำเสียปล่อยก๊าซมีเทน','ติดระบบดักก๊าซชีวภาพ'],
+      gen:['เครื่องปั่นไฟดีเซล','เผาดีเซลตอนไฟดับ','โซลาร์เซลล์ + แบตเตอรี่'],
+    }
+  },
+  en:{
+    title:'Fix the Factory', budget:'Budget', meter:'Scope 1 · factory direct emissions',
+    bigTitle:'Fix this <em>factory</em>!', sub:'Click the emission sources and pick a fix. 45 seconds, limited budget.',
+    start:'Click to start', hint:'Click an emission source<br>in the factory', emits:'Emits', fixIt:'Fix it',
+    noMoney:'Not enough budget', fixed:'✔ Fixed', done:"I'm done", locked:'Locked',
+    s1tag:'Inside the fence', s2tag:'???', s3tag:'???',
+    win:p=>`Scope 1 cut by ${p}%!`, none:'Nothing cut yet!', wait:'But wait...',
+    q2:'Where does your electricity come from?', q3:'What about everything outside the fence?', fence:'SCOPE 1 · INSIDE THE FENCE',
+    yourRank:'Your rank', cut:p=>`Scope 1 cut by ${p}%`,
+    ask:'Scope 2 & 3 are still hidden', askSub:'Talk to our team to unlock the biggest part', again:'Play again',
+    ranks:['Keep trying','Nice work!','Carbon Hero!'],
+    src:{
+      boiler:['Coal boiler','Burns coal to make steam','Switch to a biomass boiler'],
+      truck:['Company trucks','Burns diesel every trip','Switch to EV trucks'],
+      ac:['Aircon refrigerant leak','Refrigerant is a powerful greenhouse gas','Use low-GWP refrigerant'],
+      lpg:['LPG forklifts','Burns LPG gas','Switch to electric forklifts'],
+      water:['Wastewater pond','Dirty water releases methane','Add biogas capture'],
+      gen:['Diesel generator','Burns diesel in blackouts','Solar panels + battery'],
+    }
+  }
+};
+
+/* ---------- state ---------- */
+const S = {phase:'attract', lang:'th', budget:BUDGET, time:PLAY_SECONDS, fixed:new Set(), sel:null, tick:null, timers:[], idle:0};
+try{ const l = localStorage.getItem('ftf-lang'); if(l==='en'||l==='th') S.lang=l; }catch(e){}
+const $ = id => document.getElementById(id);
+const stage = $('stage');
+const L = () => T[S.lang];
+
+/* ---------- stage fit ---------- */
+function fit(){
+  const s = Math.min(innerWidth/1920, innerHeight/1080);
+  stage.style.transform = `translate(${(innerWidth-1920*s)/2}px,${(innerHeight-1080*s)/2}px) scale(${s})`;
+}
+addEventListener('resize', fit); fit();
+
+/* ---------- isometric drawing ---------- */
+const TW=76, TH=38, CX=650, CY=205;
+const P = (x,y,z=0) => [CX+(x-y)*TW/2, CY+(x+y)*TH/2 - z];
+const pts = a => a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+function box(x,y,w,d,h,c,st=''){
+  const t=[P(x,y,h),P(x+w,y,h),P(x+w,y+d,h),P(x,y+d,h)];
+  const r=[P(x+w,y),P(x+w,y+d),P(x+w,y+d,h),P(x+w,y,h)];
+  const l=[P(x,y+d),P(x+w,y+d),P(x+w,y+d,h),P(x,y+d,h)];
+  const s = st?` stroke="${st}" stroke-width="2.5" stroke-linejoin="round"`:'';
+  return `<polygon points="${pts(l)}" fill="${c[1]}"${s}/><polygon points="${pts(r)}" fill="${c[2]}"${s}/><polygon points="${pts(t)}" fill="${c[0]}"${s}/>`;
+}
+function cyl(x,y,r,h,c,st=''){
+  const [sx,sy]=P(x,y); const s = st?` stroke="${st}" stroke-width="2.5"`:'';
+  return `<rect x="${sx-r}" y="${sy-h}" width="${r*2}" height="${h}" fill="${c[1]}"${s}/><ellipse cx="${sx}" cy="${sy}" rx="${r}" ry="${r/2}" fill="${c[1]}"${s}/><rect x="${sx-r+1}" y="${sy-h}" width="${r*2-2}" height="${h}" fill="${c[1]}"/><rect x="${sx}" y="${sy-h}" width="${r-1}" height="${h}" fill="${c[2]}"/><ellipse cx="${sx}" cy="${sy-h}" rx="${r}" ry="${r/2}" fill="${c[0]}"${s}/>`;
+}
+function puffs(x,y,z,n=3,col='#9aa6b4',big=1){
+  const [sx,sy]=P(x,y,z); let o='';
+  for(let i=0;i<n;i++) o+=`<circle class="puff" cx="${sx}" cy="${sy}" r="${14*big}" fill="${col}" style="animation-delay:${(i*2.4/n).toFixed(2)}s"/>`;
+  return o;
+}
+const GREY=['#4d5d70','#2f3b4a','#3c4a5b'], DARK=['#39434f','#222a33','#2c3540'];
+
+function buildPlant(){
+  let g='';
+  // ground + fence (scope 1 boundary)
+  g+=`<polygon points="${pts([P(0,0),P(16,0),P(16,16),P(0,16)])}" fill="#16212c" stroke="var(--s1)" stroke-width="4" stroke-dasharray="18 12"/>`;
+  g+=`<polygon points="${pts([P(0,16),P(16,16),P(16,16,-14),P(0,16,-14)])}" fill="#0f171f"/><polygon points="${pts([P(16,0),P(16,16),P(16,16,-14),P(16,0,-14)])}" fill="#121b25"/>`;
+  const [fx,fy]=P(1,16.6);
+  g+=`<text id="fenceTxt" x="${fx}" y="${fy}" fill="var(--s1)" font-size="24" font-weight="800" transform="rotate(26.57 ${fx} ${fy})"></text>`;
+  // road
+  g+=`<polygon points="${pts([P(8,10.5),P(16,10.5),P(16,15.5),P(8,15.5)])}" fill="#1d2935"/>`;
+
+  // water pond
+  let w=`<polygon points="${pts([P(1,11),P(5.5,11),P(5.5,15.2),P(1,15.2)])}" fill="#3b4a2f" stroke="#58653e" stroke-width="5"/>`;
+  [[2,12.2],[3.6,13.4],[2.4,14.3],[4.4,12]].forEach(([a,b],i)=>{const[sx,sy]=P(a,b);w+=`<circle class="bub" cx="${sx}" cy="${sy}" r="9" fill="#8fa65a" style="animation-delay:${i*.45}s"/>`});
+  g+=src('water',w);
+
+  // boiler + chimney
+  g+=src('boiler', cyl(13.8,1.6,20,230,['#6b4f45','#4a3630','#5a423a']) + puffs(13.8,1.6,236,4,'#7d8794',1.5)
+     + box(10,1.5,3,3,80,['#7a5a4c','#4f3a31','#634a3f']) + `<text x="${P(11.5,4.5,30)[0]}" y="${P(11.5,4.5,30)[1]}" font-size="24" fill="#ffb199" font-weight="800" text-anchor="middle">🔥</text>`);
+
+  // main building
+  g+=box(3,2.5,6,5.5,120,['#5c6f84','#34404e','#455467']);
+  for(let i=0;i<4;i++){const a=P(3.6+i*1.4,8,85),b=P(4.6+i*1.4,8,85),c=P(4.6+i*1.4,8,55),d=P(3.6+i*1.4,8,55);g+=`<polygon points="${pts([a,b,c,d])}" fill="#ffd77a" opacity=".55"/>`}
+  for(let i=0;i<3;i++) g+=box(3.5+i*1.9,3,1.2,4.5,12,['#6d8299','#3c4958','#4f6075']).replace(/points="([^"]+)"/g,(m,p)=>`points="${p.split(' ').map(q=>{const[x,y]=q.split(',');return x+','+(y-120)}).join(' ')}"`);
+
+  // aircon units
+  let ac='';
+  for(let i=0;i<3;i++){ac+=box(2+i*1.35,9,1.1,1.1,30,['#9fb3c6','#5f7184','#7a8ea2']);const[sx,sy]=P(2.55+i*1.35,9.55,30);ac+=`<ellipse cx="${sx}" cy="${sy}" rx="17" ry="8.5" fill="#2b3642"/>`}
+  [[2.3,9.6],[3.6,9.6],[5,9.6]].forEach(([a,b],i)=>{const[sx,sy]=P(a,b,36);ac+=`<circle class="puff" cx="${sx}" cy="${sy}" r="9" fill="#bfe3ff" style="animation-delay:${i*.7}s"/>`});
+  g+=src('ac',ac);
+
+  // LPG tank + forklift
+  let lp=box(5.4,12.4,1.7,1.2,24,['#ffcc6a','#c58f22','#e0a83a']) + cyl(6.3,12.6,30,70,['#e9eef3','#aab4bf','#cfd7df']);
+  const [lx,ly]=P(6.3,12.6,35); lp+=`<text x="${lx}" y="${ly}" font-size="22" font-weight="800" fill="#c0392b" text-anchor="middle">LPG</text>`;
+  lp+=puffs(5.6,13.2,30,2,'#9aa6b4',.8);
+  g+=src('lpg',lp);
+
+  // generator
+  let gn=box(11,7,2.6,1.6,46,['#3f6f5a','#24453a','#2f5848']) + cyl(13.2,7.5,8,80,DARK) + puffs(13.2,7.5,84,3,'#6c7682',1);
+  g+=src('gen',gn);
+
+  // trucks
+  let tr='';
+  [[9,11.4],[9,13.6]].forEach(([x,y],i)=>{
+    tr+=box(x,y,3.1,1.4,52,['#e8edf2','#a9b3be','#c8d1da'])+box(x+3.1,y,1.2,1.4,40,['#ff6b5e','#b8382f','#d84a40']);
+    tr+=puffs(x-.1,y+1.2,10,2,'#8b95a1',.9);
+  });
+  g+=src('truck',tr);
+  $('plant').innerHTML=g;
+  document.querySelectorAll('.src').forEach(el=>el.addEventListener('click',()=>select(el.dataset.id)));
+}
+function src(id,inner){return `<g class="src" data-id="${id}">${inner}</g>`}
+
+const PIN_AT={boiler:[11.5,3,300],truck:[11.5,12.6,110],ac:[2.2,9.4,100],lpg:[6.9,13.4,140],water:[3.2,13.1,70],gen:[12.3,7.8,140]};
+function buildPins(){
+  let g='';
+  SRC.forEach(s=>{
+    const[x,y]=P(...PIN_AT[s.id]);
+    g+=`<g class="pin" id="pin-${s.id}" transform="translate(${x},${y})"><g class="pinpulse"><rect x="-58" y="-30" width="116" height="52" rx="26" fill="var(--red)"/><path d="M-10 21 L0 34 L10 21Z" fill="var(--red)"/><text class="tag" y="5" text-anchor="middle" fill="#fff"></text></g></g>`;
+  });
+  $('pins').innerHTML=g;
+  SRC.forEach(s=>$('pin-'+s.id).addEventListener('click',()=>select(s.id)));
+}
+
+function buildOuter(){
+  const SL='#141b25', s2=['#1b2836','#121b26','#172230'], s3=['#2a2617','#1a170e','#221e12'];
+  let g='';
+  // power lines from plant to factory
+  for(let x=-10;x<=-1;x+=3){const[a,b]=P(x,5);g+=`<polyline points="${a-14},${b} ${a},${b-90} ${a+14},${b}" fill="none" stroke="var(--s2)" stroke-width="4"/><line x1="${a-22}" y1="${b-70}" x2="${a+22}" y2="${b-70}" stroke="var(--s2)" stroke-width="4"/>`}
+  const w1=P(-10,5,70),w2=P(-1,5,70); g+=`<line x1="${w1[0]}" y1="${w1[1]}" x2="${w2[0]}" y2="${w2[1]}" stroke="var(--s2)" stroke-width="3" stroke-dasharray="10 8"/>`;
+  // power plant (scope 2)
+  g+=box(-17,2,5,5,90,s2,'var(--s2)');
+  [[-17.5,8.5],[-14.5,9.5]].forEach(([x,y])=>{const[sx,sy]=P(x,y);g+=`<path d="M${sx-46} ${sy} Q${sx-26} ${sy-90} ${sx-34} ${sy-170} L${sx+34} ${sy-170} Q${sx+26} ${sy-90} ${sx+46} ${sy}Z" fill="${SL}" stroke="var(--s2)" stroke-width="3"/>`});
+  g+=lock(-15,6,330,'var(--s2)','q2');
+  // scope 3: supplier factory
+  g+=box(2,-16,6,4,90,s3,'var(--s3)')+cyl(8.6,-15,14,170,s3,'var(--s3)');
+  g+=lock(5,-14,300,'var(--s3)','q3');
+  // roads out
+  [[16,8,26,8],[8,0,8,-11],[8,16,8,26]].forEach(([a,b,c,d])=>{const p1=P(a,b),p2=P(c,d);g+=`<line x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" stroke="#3a3420" stroke-width="18" stroke-linecap="round"/>`});
+  // houses (commute)
+  for(let i=0;i<3;i++)for(let j=0;j<2;j++)g+=box(20+j*3,3+i*3,2,2,40,s3,'var(--s3)');
+  g+=lockSmall(22.5,7,140);
+  // ship / port
+  const[hx,hy]=P(26,19);g+=`<path d="M${hx-150} ${hy-40} L${hx+150} ${hy-40} L${hx+110} ${hy+20} L${hx-120} ${hy+20}Z" fill="${SL}" stroke="var(--s3)" stroke-width="3"/>`;
+  for(let i=0;i<4;i++)g+=`<rect x="${hx-110+i*52}" y="${hy-90}" width="46" height="50" fill="#2a2617" stroke="var(--s3)" stroke-width="2.5"/>`;
+  g+=lockSmall(26,19,150);
+  // landfill / product end of life
+  const[mx,my]=P(4,27);g+=`<path d="M${mx-170} ${my} Q${mx} ${my-170} ${mx+170} ${my}Z" fill="${SL}" stroke="var(--s3)" stroke-width="3"/>`;
+  g+=lockSmall(4,27,170);
+  // shop / customers
+  g+=box(16,22,4,3,60,s3,'var(--s3)');g+=lockSmall(18,23.5,140);
+  $('outer').innerHTML=g;
+}
+function lock(x,y,z,c,q){
+  const[sx,sy]=P(x,y,z);
+  return `<g transform="translate(${sx},${sy})"><g class="lockq"><circle r="70" fill="${c}"/><text y="34" text-anchor="middle" font-size="100" font-weight="800" fill="#0a0e13">?</text></g><text id="${q}" class="q" y="-100" ${q==='q2'?'x="-150" text-anchor="start"':'text-anchor="middle"'} font-size="52" fill="${c}"></text></g>`;
+}
+function lockSmall(x,y,z){const[sx,sy]=P(x,y,z);return `<g transform="translate(${sx},${sy})"><g class="lockq"><circle r="44" fill="var(--s3)"/><text y="22" text-anchor="middle" font-size="64" font-weight="800" fill="#0a0e13">?</text></g></g>`}
+
+/* ---------- panel ---------- */
+function buildBoard(){
+  const row=(n,c,cells,tot,tag,locked)=>`<div><div class="row ${locked?'locked':''}" style="--c:var(${c})"><div class="no">${n}</div><div class="cells">${cells}</div><div class="tot">${tot}</div></div><div class="rowtag"><span>Scope ${n} · <span data-i18n="${tag}"></span></span>${locked?'<span>🔒 <span data-i18n="locked"></span></span>':''}</div></div>`;
+  const q='<div class="cell">?</div>'.repeat(6);
+  const c1=SRC.map(s=>`<div class="cell" id="cell-${s.id}"><span class="ic">${s.icon}</span><span class="v"></span></div>`).join('');
+  $('board').innerHTML=row(3,'--s3',q,'?','s3tag',1)+row(2,'--s2',q,'?','s2tag',1)+row(1,'--s1',c1,'<span id="tot1"></span>','s1tag',0);
+}
+
+function renderInfo(){
+  const t=L(), el=$('info');
+  if(S.phase!=='play'){el.innerHTML='';return}
+  if(!S.sel){el.innerHTML=`<div class="hint"><b>👈</b>${t.hint}</div>`;}
+  else{
+    const s=SRC.find(x=>x.id===S.sel), [name,desc,fixTxt]=t.src[s.id], f=S.fixed.has(s.id);
+    const can=S.budget>=s.cost;
+    el.innerHTML=`<h3><span>${s.icon}</span>${name}</h3><div class="desc">${desc}</div>
+      <div class="fix"><div class="t">→ ${fixTxt}</div><div class="stats"><span class="cut">−${s.cut} tCO₂e</span><span class="cost">💰 ${s.cost}</span></div>
+      ${f?`<div class="done-note">${t.fixed}</div>`:`<button class="btn" id="fixBtn" ${can?'':'disabled'}>${can?t.fixIt:t.noMoney}</button>`}</div>
+`;
+    const fb=$('fixBtn'); if(fb) fb.onclick=()=>fix(s.id);
+  }
+}
+
+function render(){
+  const tot=total();
+  $('budget').textContent=S.budget;
+  $('time').textContent=S.time;
+  $('timePill').classList.toggle('low',S.phase==='play'&&S.time<=10);
+  const n=$('total'); n.firstChild.nodeValue=tot; n.classList.toggle('good',tot<=60);
+  $('bar').style.width=(tot/BASE*100)+'%';
+  $('tot1').textContent=tot;
+  SRC.forEach(s=>{
+    const f=S.fixed.has(s.id), v=f?s.e-s.cut:s.e;
+    const c=$('cell-'+s.id); c.classList.toggle('fixed',f); c.classList.toggle('sel',S.sel===s.id); c.querySelector('.v').textContent=v;
+    const p=$('pin-'+s.id); p.querySelector('rect').setAttribute('fill',f?'var(--s1)':'var(--red)'); p.querySelector('path').setAttribute('fill',f?'var(--s1)':'var(--red)');
+    p.querySelector('.tag').textContent=(f?'✔ ':'')+v; p.querySelector('.tag').setAttribute('fill',f?'#06210f':'#fff');
+    document.querySelector(`.src[data-id="${s.id}"]`).classList.toggle('fixed',f);
+    document.querySelector(`.src[data-id="${s.id}"]`).classList.toggle('sel',S.sel===s.id);
+  });
+  renderInfo();
+}
+const total=()=>SRC.reduce((a,s)=>a+(S.fixed.has(s.id)?s.e-s.cut:s.e),0);
+const pct=()=>Math.round((BASE-total())/BASE*100);
+
+function applyLang(){
+  const t=L(); document.documentElement.lang=S.lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>el.innerHTML=t[el.dataset.i18n]);
+  document.querySelectorAll('#lang span').forEach(s=>s.classList.toggle('on',s.dataset.l===S.lang));
+  $('fenceTxt').textContent=t.fence; $('q2').textContent=t.q2; $('q3').textContent=t.q3;
+  if(S.phase==='end') fillEnd();
+  render();
+}
+
+/* ---------- game flow ---------- */
+function select(id){ if(S.phase!=='play')return; S.sel=id; S.idle=0; render(); }
+function fix(id){
+  const s=SRC.find(x=>x.id===id); if(S.fixed.has(id)||S.budget<s.cost)return;
+  S.budget-=s.cost; S.fixed.add(id); render();
+  floatText(id,'−'+s.cut);
+  const left=SRC.filter(x=>!S.fixed.has(x.id));
+  if(!left.length||left.every(x=>x.cost>S.budget)) later(endGame,1400);
+}
+function floatText(id,txt){
+  const r=$('pin-'+id).getBoundingClientRect(), sr=stage.getBoundingClientRect(), k=sr.width/1920;
+  const d=document.createElement('div'); d.className='float'; d.textContent=txt;
+  d.style.left=((r.left-sr.left)/k)+'px'; d.style.top=((r.top-sr.top)/k-40)+'px';
+  stage.appendChild(d); setTimeout(()=>d.remove(),1300);
+}
+function later(fn,ms){S.timers.push(setTimeout(fn,ms))}
+function setPhase(p){S.phase=p; stage.className=p+(stage.classList.contains('zoom')?' zoom':'')}
+
+function startGame(){
+  reset(true); setPhase('play'); render();
+  S.tick=setInterval(()=>{
+    S.time--; S.idle++; render();
+    if(S.time<=0) endGame();
+    if(S.idle>=25) reset();          // walked away
+  },1000);
+}
+function endGame(){
+  if(S.phase!=='play')return;
+  clearInterval(S.tick); S.sel=null; setPhase('reveal'); render();
+  const p=pct(), b=$('banner');
+  b.className='show win'; b.textContent=p>0?L().win(p):L().none;
+  if(p>0) confetti();
+  later(()=>{b.className='show wait'; b.textContent=L().wait},2600);
+  later(()=>{b.className=''; stage.classList.add('zoom'); $('panel').classList.add('tease')},4000);
+  later(()=>{setPhase('end'); fillEnd()},7200);
+  later(()=>reset(),40000);
+}
+function fillEnd(){
+  const p=pct(), r=L().ranks; $('rank').textContent=r[p>=40?2:p>=25?1:0]; $('cutLine').textContent=L().cut(p);
+}
+function reset(silent){
+  clearInterval(S.tick); S.timers.forEach(clearTimeout); S.timers=[];
+  Object.assign(S,{budget:BUDGET,time:PLAY_SECONDS,sel:null,idle:0}); S.fixed=new Set();
+  stage.classList.remove('zoom'); $('panel').classList.remove('tease'); $('banner').className=''; $('confetti').innerHTML='';
+  if(!silent){setPhase('attract')} render();
+}
+function confetti(){
+  const c=$('confetti'), cols=['#3ddc84','#3aa8ff','#ffc93c','#ff4d5e','#fff'];
+  for(let i=0;i<120;i++){const e=document.createElement('i');e.style.left=Math.random()*1300+'px';e.style.background=cols[i%5];
+    e.style.animationDuration=(1.6+Math.random()*1.6)+'s';e.style.animationDelay=Math.random()*.5+'s';c.appendChild(e)}
+}
+
+/* ---------- input ---------- */
+$('startBtn').onclick=startGame;
+$('doneBtn').onclick=()=>endGame();
+$('againBtn').onclick=startGame;
+$('attract').addEventListener('click',e=>{if(e.target.id!=='startBtn')startGame()});
+$('lang').onclick=()=>{S.lang=S.lang==='th'?'en':'th'; try{localStorage.setItem('ftf-lang',S.lang)}catch(e){} applyLang()};
+addEventListener('mousemove',()=>S.idle=0);
+addEventListener('keydown',e=>{               // staff shortcuts
+  if(e.key==='r'||e.key==='R') reset();
+  if(e.key==='l'||e.key==='L') $('lang').click();
+  if(e.key==='f'||e.key==='F') document.documentElement.requestFullscreen?.();
+});
+
+buildPlant(); buildPins(); buildOuter(); buildBoard(); applyLang();
+</script>
+</body>
+</html>
