@@ -238,7 +238,7 @@ const T = {
 };
 
 /* ---------- state ---------- */
-const S = {phase:'attract', lang:'th', budget:BUDGET, time:PLAY_SECONDS, fixed:new Set(), sel:null, tick:null, timers:[], idle:0};
+const S = {phase:'attract', lang:'th', budget:BUDGET, time:PLAY_SECONDS, fixed:new Set(), sel:null, tick:null, timers:[]};
 try{ const l = localStorage.getItem('ftf-lang'); if(l==='en'||l==='th') S.lang=l; }catch(e){}
 const $ = id => document.getElementById(id);
 const stage = $('stage');
@@ -425,7 +425,7 @@ function applyLang(){
 }
 
 /* ---------- game flow ---------- */
-function select(id){ if(S.phase!=='play')return; S.sel=id; S.idle=0; render(); }
+function select(id){ if(S.phase!=='play')return; S.sel=id; render(); }
 function fix(id){
   const s=SRC.find(x=>x.id===id); if(S.fixed.has(id)||S.budget<s.cost)return;
   S.budget-=s.cost; S.fixed.add(id); render();
@@ -445,9 +445,8 @@ function setPhase(p){S.phase=p; stage.className=p+(stage.classList.contains('zoo
 function startGame(){
   reset(true); setPhase('play'); render();
   S.tick=setInterval(()=>{
-    S.time--; S.idle++; render();
+    S.time--; render();
     if(S.time<=0) endGame();
-    if(S.idle>=25) reset();          // walked away
   },1000);
 }
 function endGame(){
@@ -466,7 +465,7 @@ function fillEnd(){
 }
 function reset(silent){
   clearInterval(S.tick); S.timers.forEach(clearTimeout); S.timers=[];
-  Object.assign(S,{budget:BUDGET,time:PLAY_SECONDS,sel:null,idle:0}); S.fixed=new Set();
+  Object.assign(S,{budget:BUDGET,time:PLAY_SECONDS,sel:null}); S.fixed=new Set();
   stage.classList.remove('zoom'); $('panel').classList.remove('tease'); $('banner').className=''; $('confetti').innerHTML='';
   if(!silent){setPhase('attract')} render();
 }
@@ -482,7 +481,6 @@ $('doneBtn').onclick=()=>endGame();
 $('againBtn').onclick=startGame;
 $('attract').addEventListener('click',e=>{if(e.target.id!=='startBtn')startGame()});
 $('lang').onclick=()=>{S.lang=S.lang==='th'?'en':'th'; try{localStorage.setItem('ftf-lang',S.lang)}catch(e){} applyLang()};
-addEventListener('mousemove',()=>S.idle=0);
 addEventListener('keydown',e=>{               // staff shortcuts
   if(e.key==='r'||e.key==='R') reset();
   if(e.key==='l'||e.key==='L') $('lang').click();
