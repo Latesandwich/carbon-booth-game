@@ -506,26 +506,32 @@ function howHTML(){
   const t=L();
   return `<h3>📋 ${t.how}</h3><div class="how">${[1,2,3].map(i=>`<div class="${S.step===i?'on':''}"><b>${i}</b>${t['st'+i]}</div>`).join('')}</div>`;
 }
+// Rebuild the card only when its content changes: a rebuild between mouse-down and mouse-up swaps
+// the button out and the click is lost (the clock used to rebuild it every second).
+function setInfo(html, bind){
+  const el=$('info'); if(el._html===html) return;
+  el._html=html; el.innerHTML=html; if(bind) bind();
+}
 function renderInfo(){
-  const t=L(), el=$('info');
-  if(S.phase==='intro'){ el.innerHTML=howHTML()+`<button class="btn ghost" id="skipBtn">${t.skip}</button>`; $('skipBtn').onclick=skipIntro; return; }
-  if(S.phase!=='play'){ el.innerHTML=''; return; }
-  if(!S.sel){ el.innerHTML=howHTML(); return; }
+  const t=L();
+  if(S.phase==='intro') return setInfo(howHTML()+`<button class="btn ghost" id="skipBtn">${t.skip}</button>`, ()=>$('skipBtn').onclick=skipIntro);
+  if(S.phase!=='play') return setInfo('');
+  if(!S.sel) return setInfo(howHTML());
   const s=SRC.find(x=>x.id===S.sel), [name,desc,fixTxt]=t.src[s.id], f=S.fixed.has(s.id), can=S.budget>=s.cost;
-  el.innerHTML=`<h3><span>${s.icon}</span>${name}</h3><div class="desc">${desc}</div>
+  setInfo(`<h3><span>${s.icon}</span>${name}</h3><div class="desc">${desc}</div>
     <div class="emit">${t.emits} <b>${f?s.e-s.cut:s.e}</b> ${t.unit}</div>
     <div class="fix"><div class="t">${t.fixLbl}: ${fixTxt}</div><div class="stats"><span class="cut">${t.cut} −${s.cut}</span><span class="cost">💰 ${s.cost} ${t.coins}</span></div>
-    ${f?`<div class="done-note">${t.fixed}</div>`:`<button class="btn" id="fixBtn" ${can?'':'disabled'}>${can?t.fixIt(s.cost):t.noMoney}</button>`}</div>`;
-  const fb=$('fixBtn'); if(fb) fb.onclick=()=>fix(s.id);
+    ${f?`<div class="done-note">${t.fixed}</div>`:`<button class="btn" id="fixBtn" ${can?'':'disabled'}>${can?t.fixIt(s.cost):t.noMoney}</button>`}</div>`,
+    ()=>{ const fb=$('fixBtn'); if(fb) fb.onclick=()=>fix(s.id); });
 }
 
 const total=()=>SRC.reduce((a,s)=>a+(S.fixed.has(s.id)?s.e-s.cut:s.e),0);
 const pct=()=>Math.round((BASE-total())/BASE*100);
+function renderTime(){ $('time').textContent=S.time; $('timePill').classList.toggle('low',S.phase==='play'&&S.time<=10); }
 function render(){
   const tot=total();
   $('budget').textContent=S.budget;
-  $('time').textContent=S.time;
-  $('timePill').classList.toggle('low',S.phase==='play'&&S.time<=10);
+  renderTime();
   const n=$('total'); n.firstChild.nodeValue=tot; n.classList.toggle('good',tot<GOAL);
   $('bar').style.width=(tot/BASE*100)+'%';
   $('tot1').textContent=tot;
@@ -572,7 +578,7 @@ function skipIntro(){ if(S.phase!=='intro') return; stopVoice(); beginPlay(); }
 function beginPlay(){
   S.run++; S.step=0; hl(''); setPhase('play'); render();
   S.tick=setInterval(()=>{
-    S.time--; render();
+    S.time--; renderTime();
     if(S.time===10) say('time10');
     if(S.time<=0) endGame();
   },1000);
