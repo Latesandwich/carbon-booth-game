@@ -4,22 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fix the Factory</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏭</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0e13;--panel:#111821;--line:#243041;--ink:#eef3f8;--mute:#8a97a8;--s1:#3ddc84;--s2:#3aa8ff;--s3:#ffc93c;--red:#ff4d5e}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:Kanit,"Leelawadee UI","Noto Sans Thai",system-ui,sans-serif;color:var(--ink);user-select:none}
-body,button,.src{cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><path d='M4 3 L4 36 L13 28 L19 41 L25 38 L19 26 L31 26 Z' fill='white' stroke='black' stroke-width='2.5' stroke-linejoin='round'/></svg>") 4 3,auto}
+body,button,.src,.pin{cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><path d='M4 3 L4 36 L13 28 L19 41 L25 38 L19 26 L31 26 Z' fill='white' stroke='black' stroke-width='2.5' stroke-linejoin='round'/></svg>") 4 3,auto}
 #stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;
   background:radial-gradient(ellipse at 34% 50%,#15263a 0%,var(--bg) 62%)}
 button{font-family:inherit;border:0;color:inherit;background:none}
 
 /* top bar */
-header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:flex;align-items:center;padding:0 48px;gap:32px}
+header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:flex;align-items:center;padding:0 48px;gap:24px}
 .brand{display:flex;align-items:center;gap:16px;font-size:40px;font-weight:800;letter-spacing:.5px}
 .brand .dot{width:22px;height:22px;border-radius:50%;background:var(--s1);box-shadow:0 0 18px var(--s1)}
-.hud{margin-left:auto;display:flex;gap:18px}
-.pill{font-size:34px;font-weight:600;padding:8px 26px;border-radius:999px;background:var(--panel);border:2px solid var(--line);display:flex;gap:12px;align-items:center}
+.hud{margin-left:auto;display:flex;gap:16px}
+.pill{font-size:34px;font-weight:600;padding:8px 26px;border-radius:999px;background:var(--panel);border:2px solid var(--line);display:flex;gap:12px;align-items:center;transition:box-shadow .3s,border-color .3s}
 .pill b{font-weight:800}
 #timePill.low{border-color:var(--red);color:var(--red);animation:pulse .5s infinite alternate}
 #budgetPill b{color:var(--s3)}
@@ -29,6 +30,7 @@ header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:fle
 #lang{display:flex;border:2px solid var(--line);border-radius:999px;overflow:hidden;font-size:26px;font-weight:600}
 #lang span{padding:10px 22px;color:var(--mute)}
 #lang span.on{background:var(--ink);color:#0a0e13}
+#mute{font-size:30px;width:64px;height:60px;border-radius:999px;border:2px solid var(--line);background:var(--panel)}
 
 /* scene */
 #scene{position:absolute;left:0;top:100px;width:1300px;height:970px}
@@ -36,6 +38,8 @@ header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:fle
 .zoom #world{transform:scale(.5) translateY(40px)}
 #outer{opacity:0;transition:opacity 1.6s 1s}
 .zoom #outer{opacity:1}
+#o2,#o3{transition:opacity .5s}
+[data-hl=s2] #o3,[data-hl=s3] #o2{opacity:.18}
 #pins{transition:opacity .6s}
 .zoom #pins{opacity:0}
 .src{transition:filter .2s}
@@ -43,61 +47,79 @@ header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:fle
 .src.sel{filter:brightness(1.35) drop-shadow(0 0 16px #fff)!important}
 .src.fixed{filter:saturate(.5) drop-shadow(0 0 12px rgba(61,220,132,.8))}
 .src.fixed .puff{display:none}
-.puff{animation:puff 2.4s linear infinite;opacity:0}
+.puff{animation:puff 2.4s linear infinite;opacity:0;transform-box:fill-box;transform-origin:center}
 @keyframes puff{0%{transform:translate(0,0) scale(.4);opacity:0}15%{opacity:.75}100%{transform:translate(18px,-120px) scale(1.6);opacity:0}}
-.puff{transform-box:fill-box;transform-origin:center}
 .bub{animation:bub 1.8s ease-in infinite;transform-box:fill-box;transform-origin:center}
 @keyframes bub{0%{transform:scale(.2);opacity:0}50%{opacity:1}100%{transform:scale(1.4) translateY(-6px);opacity:0}}
 .src.fixed .bub{display:none}
-.pin{transition:transform .3s;cursor:inherit}
 .play .pin:hover{filter:brightness(1.2)}
 .pin .tag{font-weight:800;font-size:26px}
 .pinpulse{animation:pinp 1.2s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}
 @keyframes pinp{to{transform:scale(1.12)}}
+[data-hl=pins] #pins{filter:drop-shadow(0 0 18px #fff)}
+[data-hl=pins] .pinpulse{animation-duration:.5s}
+#hand{display:none;animation:bob .7s ease-in-out infinite alternate}
+#hand.on{display:block}
+@keyframes bob{to{transform:translateY(-16px)}}
 .q{font-weight:800}
-.lockq{animation:pinp 1s ease-in-out infinite alternate}
+.lockq{animation:pinp 1s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}
+
+/* caption (narrator subtitles) */
+#caption{position:absolute;left:40px;width:1220px;bottom:28px;padding:18px 28px;border-radius:20px;background:rgba(6,10,14,.9);border:2px solid var(--line);border-left:8px solid var(--s1);
+  font-size:34px;line-height:1.3;font-weight:600;display:flex;gap:18px;align-items:center;opacity:0;transform:translateY(20px);transition:.25s;pointer-events:none;z-index:4}
+#caption.show{opacity:1;transform:none}
+#caption .who{font-size:34px;flex:none}
 
 /* panel */
 #panel{position:absolute;left:1316px;top:112px;width:570px;height:948px;display:flex;flex-direction:column;gap:16px}
-.card.meter{padding:16px 26px}
-#info{overflow:hidden}
-.card{background:var(--panel);border:2px solid var(--line);border-radius:24px;padding:22px 26px}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:24px;padding:20px 26px;transition:box-shadow .3s,border-color .3s}
+.card.meter{padding:14px 26px}
 .meter .lbl{font-size:24px;color:var(--mute)}
 .meter .num{font-size:64px;font-weight:800;line-height:1.05;color:var(--red);transition:color .3s}
-.meter .num small{font-size:26px;color:var(--mute);font-weight:600;margin-left:8px}
+.meter .num small{font-size:24px;color:var(--mute);font-weight:600;margin-left:8px}
 .meter .num.good{color:var(--s1)}
-.bar{height:22px;border-radius:12px;background:#1d2733;margin-top:10px;overflow:hidden}
-.bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--s1),var(--s3) 55%,var(--red));transition:width .6s cubic-bezier(.3,1.4,.5,1)}
-.board{display:flex;flex-direction:column;gap:12px}
-.row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:16px;border:2px solid var(--c);transition:.4s}
-.row .no{width:46px;height:46px;border-radius:50%;border:3px solid var(--c);color:var(--c);display:grid;place-items:center;font-weight:800;font-size:26px;flex:none}
+.bar{position:relative;height:24px;border-radius:12px;background:#1d2733;margin-top:8px}
+.bar i{display:block;height:100%;width:100%;border-radius:12px;background:linear-gradient(90deg,var(--s1),var(--s3) 55%,var(--red));transition:width .6s cubic-bezier(.3,1.4,.5,1)}
+.goal{position:absolute;top:-8px;bottom:-8px;width:4px;background:#fff;border-radius:2px}
+.goal span{position:absolute;top:-30px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:20px;font-weight:800;color:#fff}
+.meter{position:relative}
+.meter .goalTxt{position:absolute;right:26px;top:66px;font-size:22px;font-weight:800;color:var(--s1);border:2px solid var(--s1);border-radius:999px;padding:2px 14px}
+[data-hl=budget] #budgetPill,[data-hl=budget] #timePill{border-color:var(--s3);box-shadow:0 0 30px rgba(255,201,60,.7)}
+[data-hl=meter] .card.meter{border-color:var(--s1);box-shadow:0 0 30px rgba(61,220,132,.6)}
+.board{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:8px;padding:7px;border-radius:16px;border:2px solid var(--c);transition:.4s}
+.row .no{width:44px;height:44px;border-radius:50%;border:3px solid var(--c);color:var(--c);display:grid;place-items:center;font-weight:800;font-size:24px;flex:none}
 .row .cells{display:flex;gap:6px;flex:1}
-.cell{flex:1;height:62px;border-radius:10px;border:2px solid color-mix(in srgb,var(--c) 45%,transparent);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;line-height:1.05;font-weight:600}
-.cell .ic{font-size:22px}
+.cell{flex:1;height:58px;border-radius:10px;border:2px solid color-mix(in srgb,var(--c) 45%,transparent);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;line-height:1.05;font-weight:600}
 .cell.fixed{background:color-mix(in srgb,var(--s1) 18%,transparent);color:var(--s1)}
 .cell.sel{border-color:#fff}
-.row .tot{width:84px;height:62px;border-radius:12px;background:var(--c);color:#0a0e13;display:grid;place-items:center;font-weight:800;font-size:28px;flex:none}
+.row .tot{width:84px;height:58px;border-radius:12px;background:var(--c);color:#0a0e13;display:grid;place-items:center;font-weight:800;font-size:28px;flex:none}
 .row.locked{opacity:.45;filter:saturate(.6)}
-.row.locked .cell,.row.locked .tot{font-size:30px}
+.row.locked .cell,.row.locked .tot{font-size:28px}
 .tease .row.locked{opacity:1;filter:none;box-shadow:0 0 30px color-mix(in srgb,var(--c) 60%,transparent);animation:shake 2.4s ease-in-out infinite}
+[data-hl=s2] #row3,[data-hl=s3] #row2{opacity:.3!important;animation:none!important;box-shadow:none!important}
 @keyframes shake{0%,86%,100%{transform:none}89%{transform:translateX(-6px)}92%{transform:translateX(6px)}95%{transform:translateX(-4px)}}
-.rowtag{font-size:18px;color:var(--mute);margin:-4px 0 0 6px;display:flex;justify-content:space-between}
-#info{flex:1;display:flex;flex-direction:column;gap:8px}
-#info .hint{margin:auto;text-align:center;font-size:30px;color:var(--mute);line-height:1.35}
-#info .hint b{display:block;font-size:64px;animation:pinp .8s infinite alternate}
-#info h3{font-size:32px;font-weight:800;display:flex;gap:12px;align-items:center}
-#info .desc{font-size:22px;color:var(--mute)}
-#info .emit{font-size:26px}
-#info .emit b{color:var(--red)}
+.rowtag{font-size:18px;color:var(--mute);margin:-2px 0 0 6px;display:flex;justify-content:space-between}
+
+#info{flex:1;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+#info h3{font-size:30px;font-weight:800;display:flex;gap:12px;align-items:center}
+#info .desc{font-size:22px;color:var(--mute);line-height:1.3}
+#info .emit{font-size:24px}
+#info .emit b{color:var(--red);font-size:30px}
+.how{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.how div{display:flex;gap:14px;align-items:center;font-size:24px;line-height:1.25;color:var(--mute);padding:8px 12px;border-radius:14px;border:2px solid transparent;transition:.3s}
+.how div b{flex:none;width:40px;height:40px;border-radius:50%;background:#1d2733;display:grid;place-items:center;font-size:22px;color:var(--ink)}
+.how div.on{color:var(--ink);border-color:var(--s1);background:rgba(61,220,132,.08)}
+.how div.on b{background:var(--s1);color:#06210f}
 .fix{margin-top:auto;border-radius:18px;border:2px dashed var(--s1);padding:12px 16px;display:flex;flex-direction:column;gap:8px}
-.fix .t{font-size:26px;font-weight:600;color:var(--s1)}
-.fix .stats{display:flex;gap:20px;font-size:26px}
+.fix .t{font-size:24px;font-weight:600;color:var(--s1)}
+.fix .stats{display:flex;gap:20px;font-size:24px}
 .fix .stats .cut{color:var(--s1);font-weight:800}
 .fix .stats .cost{color:var(--s3);font-weight:800}
-.btn{font-size:32px;font-weight:800;padding:14px 22px;border-radius:16px;background:var(--s1);color:#06210f;transition:transform .1s,filter .2s}
+.btn{font-size:32px;font-weight:800;padding:12px 22px;border-radius:16px;background:var(--s1);color:#06210f;transition:transform .1s,filter .2s}
 .btn:hover{filter:brightness(1.15);transform:translateY(-2px)}
 .btn:disabled{background:#2a3442;color:var(--mute);transform:none;filter:none}
-.btn.ghost{background:transparent;border:2px solid var(--line);color:var(--ink);font-size:24px;padding:8px}
+.btn.ghost{margin-top:auto;background:transparent;border:2px solid var(--line);color:var(--ink);font-size:24px;padding:8px}
 .done-note{font-size:28px;color:var(--s1);font-weight:800;text-align:center}
 
 /* overlays */
@@ -110,17 +132,18 @@ header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:fle
 #attract .go{font-size:52px;padding:22px 70px;border-radius:999px;animation:pulse .9s infinite alternate}
 #attract .scopes{margin-top:54px;display:flex;justify-content:center;gap:22px;font-size:30px;font-weight:600}
 #attract .scopes span{padding:8px 24px;border-radius:999px;border:2px solid var(--c);color:var(--c)}
+#attract .sound{margin-top:30px;font-size:26px;color:var(--mute)}
 @keyframes pulse{to{transform:scale(1.06)}}
-#banner{position:absolute;left:0;width:1300px;top:420px;text-align:center;font-size:96px;font-weight:800;pointer-events:none;opacity:0;transform:scale(.6);transition:.4s cubic-bezier(.3,1.6,.5,1);text-shadow:0 6px 30px #000}
+#banner{position:absolute;left:0;width:1300px;top:400px;text-align:center;font-size:96px;font-weight:800;pointer-events:none;opacity:0;transform:scale(.6);transition:.4s cubic-bezier(.3,1.6,.5,1);text-shadow:0 6px 30px #000}
 #banner.show{opacity:1;transform:none}
 #banner.win{color:var(--s1)}
 #banner.wait{color:var(--s3)}
 .end #endcard{display:block;pointer-events:none}
-.end #info{visibility:hidden}
+.end #info,.reveal #info{visibility:hidden}
 #endcard .box{pointer-events:auto;position:absolute;left:1316px;top:742px;width:570px;height:318px;background:rgba(10,14,19,.96);border:3px solid var(--s3);border-radius:24px;padding:22px 28px;display:flex;flex-direction:column;gap:12px;justify-content:center;box-shadow:0 0 60px rgba(255,201,60,.25);animation:rise .6s cubic-bezier(.3,1.4,.5,1)}
 @keyframes rise{from{transform:translateY(60px);opacity:0}}
 #endcard .grade{font-size:24px;color:var(--mute)}
-#endcard .grade b{display:inline;font-size:40px;margin:0 10px;color:var(--s1);line-height:1.1}
+#endcard .grade b{display:inline;font-size:40px;margin-right:12px;color:var(--s1);line-height:1.1}
 #endcard .ask{font-size:34px;font-weight:800;line-height:1.2;color:var(--s3)}
 #endcard .ask small{display:block;font-size:24px;color:var(--mute);font-weight:400;margin-top:6px}
 #endcard .btn{font-size:26px;padding:10px}
@@ -138,20 +161,23 @@ header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:fle
     <div class="hud">
       <button class="pill" id="doneBtn" data-i18n="done"></button>
       <div class="pill" id="timePill">⏱ <b id="time">45</b></div>
-      <div class="pill" id="budgetPill">💰 <span data-i18n="budget"></span> <b id="budget">70</b></div>
+      <div class="pill" id="budgetPill">💰 <b id="budget">70</b> <span data-i18n="coins"></span></div>
     </div>
-    <button id="lang" title="TH / EN"><span data-l="th">ไทย</span><span data-l="en">EN</span></button>
+    <button id="lang" title="TH / EN (L)"><span data-l="th">ไทย</span><span data-l="en">EN</span></button>
+    <button id="mute" title="Sound (M)">🔊</button>
   </header>
 
   <svg id="scene" viewBox="0 0 1300 970">
     <g id="world"><g id="outer"></g><g id="plant"></g><g id="pins"></g></g>
   </svg>
+  <div id="caption"><span class="who">🔊</span><span id="capText"></span></div>
 
   <aside id="panel">
     <div class="card meter">
       <div class="lbl" data-i18n="meter"></div>
-      <div class="num" id="total">100<small>tCO₂e</small></div>
-      <div class="bar"><i id="bar"></i></div>
+      <div class="goalTxt" data-i18n="goalTag"></div>
+      <div class="num" id="total">100<small data-i18n="unit"></small></div>
+      <div class="bar"><i id="bar"></i><div class="goal" id="goalMark"></div></div>
     </div>
     <div class="card board" id="board"></div>
     <div class="card" id="info"></div>
@@ -170,6 +196,7 @@ header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:fle
         <span style="--c:var(--s2)">Scope 2 ?</span>
         <span style="--c:var(--s3)">Scope 3 ?</span>
       </div>
+      <div class="sound" data-i18n="soundOn"></div>
     </div>
   </div>
 
@@ -182,64 +209,120 @@ header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:fle
   </div>
 </div>
 
+<!-- Narrator script. Single source for captions AND the voice files (tools/make_voice.py reads this block).
+     A value is either "text" or ["caption text", "how the voice should say it"]. -->
+<script id="lines" type="application/json">
+{
+  "th": {
+    "intro1": "สวัสดีครับ! โรงงานนี้กำลังปล่อยคาร์บอน ก๊าซที่มองไม่เห็น ที่ทำให้โลกร้อนขึ้น",
+    "intro2": "ตัวเลขในป้ายสีแดง คือปริมาณคาร์บอนที่แต่ละเครื่องปล่อยออกมา",
+    "intro3": "คลิกที่เครื่อง แล้วใช้เหรียญเพื่อแก้ไข แต่เหรียญมีจำกัด เลือกให้ดีนะครับ",
+    "intro4": ["ลดคาร์บอนให้ต่ำกว่า 60 ภายใน 45 วินาที เริ่มเลย!", "ลดคาร์บอนให้ต่ำกว่าหกสิบ ภายในสี่สิบห้าวินาที เริ่มเลย!"],
+    "src_boiler": "หม้อไอน้ำนี้เผาถ่านหินเพื่อทำไอน้ำ เป็นตัวปล่อยคาร์บอนที่ใหญ่ที่สุดในโรงงาน",
+    "src_truck": "รถบรรทุกของบริษัท เผาน้ำมันดีเซลทุกเที่ยวที่วิ่ง",
+    "src_ac": "แอร์มีสารทำความเย็นรั่วออกมา ซึ่งทำให้โลกร้อนแรงกว่าคาร์บอนหลายพันเท่า แต่แก้ได้ถูกมาก!",
+    "src_lpg": ["รถยกพวกนี้เผาก๊าซ LPG เป็นเชื้อเพลิง", "รถยกพวกนี้เผาก๊าซแอลพีจีเป็นเชื้อเพลิง"],
+    "src_water": "บ่อน้ำเสียปล่อยก๊าซมีเทน ซึ่งกักความร้อนได้มากกว่าคาร์บอนหลายเท่า",
+    "src_gen": "เครื่องปั่นไฟนี้เผาน้ำมันดีเซล ทุกครั้งที่ไฟดับ",
+    "ok1": "เยี่ยมเลย!",
+    "ok2": "คาร์บอนลดลงแล้ว!",
+    "ok3": "เลือกได้ดีมาก!",
+    "goal": ["ถึงเป้าหมายแล้ว! ต่ำกว่า 60 แล้ว เก่งมากครับ", "ถึงเป้าหมายแล้ว! ต่ำกว่าหกสิบแล้ว เก่งมากครับ"],
+    "time10": ["เหลืออีก 10 วินาที!", "เหลืออีกสิบวินาที!"],
+    "win": "เยี่ยมมาก! คุณลดคาร์บอนของโรงงานได้แล้ว",
+    "none": "รอบนี้ยังไม่ได้แก้อะไรเลย ไม่เป็นไรนะครับ",
+    "reveal": ["แต่เดี๋ยวก่อน... นั่นเป็นแค่ Scope 1 คือคาร์บอนที่โรงงานปล่อยเอง ยังมีอีกสองส่วนซ่อนอยู่นอกรั้วโรงงาน", "แต่เดี๋ยวก่อน... นั่นเป็นแค่ สโคปวัน คือคาร์บอนที่โรงงานปล่อยเอง ยังมีอีกสองส่วนซ่อนอยู่นอกรั้วโรงงาน"],
+    "s2": ["Scope 2: ไฟฟ้าที่โรงงานใช้ มาจากไหนกันนะ?", "สโคปทู ไฟฟ้าที่โรงงานใช้ มาจากไหนกันนะ?"],
+    "s3": ["Scope 3: แล้วทุกอย่างนอกรั้วโรงงานล่ะ?", "สโคปทรี แล้วทุกอย่างนอกรั้วโรงงานล่ะ?"],
+    "end": "อยากรู้คำตอบไหมครับ? มาคุยกับทีมงานของเราได้เลย!"
+  },
+  "en": {
+    "intro1": "Hi! This factory is releasing carbon, an invisible gas that heats up our planet.",
+    "intro2": "Each red bubble shows how much carbon that machine gives off.",
+    "intro3": "Click a machine and spend coins to fix it. Coins are limited, so choose wisely!",
+    "intro4": ["Get the factory below 60 in 45 seconds. Go!", "Get the factory below sixty, in forty-five seconds. Go!"],
+    "src_boiler": "This boiler burns coal to make steam. It's the biggest polluter in the factory.",
+    "src_truck": "The company trucks burn diesel on every trip.",
+    "src_ac": "The aircon leaks refrigerant, a gas thousands of times stronger than carbon. And it's cheap to fix!",
+    "src_lpg": "These forklifts burn LPG gas for fuel.",
+    "src_water": "The wastewater pond releases methane gas, which heats the planet much faster than carbon.",
+    "src_gen": "This generator burns diesel every time the power goes out.",
+    "ok1": "Nice!",
+    "ok2": "Carbon down!",
+    "ok3": "Great choice!",
+    "goal": "Goal reached! You're below 60. Well done!",
+    "time10": ["10 seconds left!", "Ten seconds left!"],
+    "win": "Great job! You cut the factory's carbon.",
+    "none": "No fixes this time. That's okay!",
+    "reveal": "But wait... that was only Scope 1, the carbon the factory makes by itself. Two more scopes are hiding outside the fence.",
+    "s2": "Scope 2: where does the factory's electricity come from?",
+    "s3": "Scope 3: and what about everything outside the fence?",
+    "end": "Want the answers? Come talk to our team!"
+  }
+}
+</script>
+
 <script>
 /* ---------- config (all numbers illustrative) ---------- */
-const PLAY_SECONDS = 45, BUDGET = 70, BASE = 100;
+const PLAY_SECONDS = 45, BUDGET = 70, BASE = 100, GOAL = 60;
 const SRC = [
   {id:'boiler', icon:'🔥', e:30, cut:22, cost:40},
-  {id:'truck',  icon:'🚚', e:18, cut:14, cost:30},
+  {id:'truck',  icon:'🚚', e:18, cut:15, cost:30},
   {id:'ac',     icon:'❄️', e:12, cut:10, cost:10},
   {id:'lpg',    icon:'🛢️', e:8,  cut:6,  cost:15},
   {id:'water',  icon:'💧', e:20, cut:16, cost:20},
-  {id:'gen',    icon:'⚡', e:12, cut:8,  cost:25},
+  {id:'gen',    icon:'⚡', e:12, cut:9,  cost:25},
 ];
+const LINES = JSON.parse(document.getElementById('lines').textContent);
 
 const T = {
   th:{
-    title:'ภารกิจลดคาร์บอนโรงงาน', budget:'งบ', meter:'Scope 1 · การปล่อยทางตรงของโรงงาน',
-    bigTitle:'ช่วย<em>โรงงาน</em>นี้ลดคาร์บอน!', sub:'คลิกแหล่งปล่อยมลพิษ แล้วเลือกวิธีแก้ ภายใน 45 วินาที ด้วยงบที่มีจำกัด',
-    start:'คลิกเพื่อเริ่ม', hint:'คลิกแหล่งปล่อยคาร์บอน<br>ในโรงงานด้านซ้าย', emits:'ปล่อย', fixIt:'แก้เลย',
-    noMoney:'งบไม่พอ', fixed:'✔ แก้แล้ว', done:'เสร็จแล้ว', locked:'ล็อกอยู่',
-    s1tag:'ภายในรั้วโรงงาน', s2tag:'???', s3tag:'???',
-    win:p=>`Scope 1 ลดลง ${p}%!`, none:'ยังไม่ได้ลดเลย!', wait:'แต่เดี๋ยวก่อน...',
-    q2:'ไฟฟ้าที่ใช้ มาจากไหน?', q3:'แล้วทุกอย่างนอกรั้วโรงงานล่ะ?', fence:'SCOPE 1 · ภายในรั้วโรงงาน',
-    yourRank:'ระดับของคุณ', cut:p=>`ลด Scope 1 ได้ ${p}%`,
+    title:'ภารกิจลดคาร์บอนโรงงาน', coins:'เหรียญ', unit:'ตัน CO₂', meter:'คาร์บอนที่โรงงานปล่อย (Scope 1)', goalTag:'🎯 เป้า: ต่ำกว่า 60',
+    bigTitle:'ช่วย<em>โรงงาน</em>นี้ลดคาร์บอน!', sub:'เกมสั้นๆ ไม่ต้องมีความรู้มาก่อน มีเสียงบรรยายพาเล่น',
+    start:'คลิกเพื่อเริ่ม', soundOn:'🔊 เปิดเสียงด้วยนะ', done:'เสร็จแล้ว', skip:'ข้าม ▶', locked:'ล็อกอยู่',
+    how:'วิธีเล่น', st1:'ตัวเลขสีแดง = คาร์บอนที่เครื่องนั้นปล่อย', st2:'คลิกเครื่อง แล้วกด "แก้เลย" (ใช้เหรียญ)', st3:'ลดคาร์บอนให้ต่ำกว่า 60 ก่อนหมดเวลา',
+    emits:'ปล่อยคาร์บอน', fixLbl:'วิธีแก้', cut:'ลด', fixIt:c=>`แก้เลย · 💰${c}`, noMoney:'เหรียญไม่พอ', fixed:'✔ แก้แล้ว',
+    s1tag:'คาร์บอนที่โรงงานปล่อยเอง', s2tag:'???', s3tag:'???',
+    win:p=>`ลดคาร์บอนได้ ${p}%!`, none:'ยังไม่ได้ลดเลย', wait:'แต่เดี๋ยวก่อน...',
+    q2:'ไฟฟ้าที่ใช้ มาจากไหน?', q3:'แล้วทุกอย่างนอกรั้วโรงงานล่ะ?', fence:'SCOPE 1 · ภายในรั้วโรงงาน', click:'คลิก!',
+    cutLine:p=>`ลด Scope 1 ได้ ${p}%`,
     ask:'Scope 2 และ 3 ยังซ่อนอยู่', askSub:'คุยกับทีมงานของเราเพื่อปลดล็อกส่วนที่ใหญ่ที่สุด', again:'เล่นอีกครั้ง',
     ranks:['ลองอีกนิด','ทำได้ดี!','ฮีโร่ลดคาร์บอน!'],
     src:{
-      boiler:['หม้อไอน้ำถ่านหิน','เผาถ่านหินเพื่อผลิตไอน้ำ','เปลี่ยนเป็นหม้อไอน้ำชีวมวล'],
-      truck:['รถบรรทุกของบริษัท','เผาน้ำมันดีเซลทุกเที่ยว','เปลี่ยนเป็นรถบรรทุก EV'],
-      ac:['สารทำความเย็นแอร์รั่ว','สารทำความเย็นเป็นก๊าซเรือนกระจกรุนแรง','ใช้สารทำความเย็น GWP ต่ำ'],
-      lpg:['รถยกใช้ก๊าซ LPG','เผาก๊าซ LPG ในรถยก','เปลี่ยนเป็นรถยกไฟฟ้า'],
-      water:['บ่อบำบัดน้ำเสีย','น้ำเสียปล่อยก๊าซมีเทน','ติดระบบดักก๊าซชีวภาพ'],
-      gen:['เครื่องปั่นไฟดีเซล','เผาดีเซลตอนไฟดับ','โซลาร์เซลล์ + แบตเตอรี่'],
+      boiler:['หม้อไอน้ำถ่านหิน','เผาถ่านหินเพื่อทำไอน้ำ','เปลี่ยนเป็นหม้อไอน้ำชีวมวล'],
+      truck:['รถบรรทุกของบริษัท','เผาน้ำมันดีเซลทุกเที่ยว','เปลี่ยนเป็นรถบรรทุกไฟฟ้า (EV)'],
+      ac:['แอร์ (สารทำความเย็นรั่ว)','สารทำความเย็นทำให้โลกร้อนแรงกว่าคาร์บอนมาก','เปลี่ยนเป็นสารทำความเย็นแบบโลกร้อนน้อย'],
+      lpg:['รถยกใช้ก๊าซ LPG','เผาก๊าซ LPG เป็นเชื้อเพลิง','เปลี่ยนเป็นรถยกไฟฟ้า'],
+      water:['บ่อน้ำเสีย','น้ำเสียปล่อยก๊าซมีเทน','ติดระบบดักก๊าซชีวภาพ'],
+      gen:['เครื่องปั่นไฟดีเซล','เผาดีเซลทุกครั้งที่ไฟดับ','โซลาร์เซลล์ + แบตเตอรี่'],
     }
   },
   en:{
-    title:'Fix the Factory', budget:'Budget', meter:'Scope 1 · factory direct emissions',
-    bigTitle:'Fix this <em>factory</em>!', sub:'Click the emission sources and pick a fix. 45 seconds, limited budget.',
-    start:'Click to start', hint:'Click an emission source<br>in the factory', emits:'Emits', fixIt:'Fix it',
-    noMoney:'Not enough budget', fixed:'✔ Fixed', done:"I'm done", locked:'Locked',
-    s1tag:'Inside the fence', s2tag:'???', s3tag:'???',
-    win:p=>`Scope 1 cut by ${p}%!`, none:'Nothing cut yet!', wait:'But wait...',
-    q2:'Where does your electricity come from?', q3:'What about everything outside the fence?', fence:'SCOPE 1 · INSIDE THE FENCE',
-    yourRank:'Your rank', cut:p=>`Scope 1 cut by ${p}%`,
+    title:'Fix the Factory', coins:'coins', unit:'tons CO₂', meter:'Carbon from the factory (Scope 1)', goalTag:'🎯 Goal: below 60',
+    bigTitle:'Fix this <em>factory</em>!', sub:'A quick game. No experience needed. A narrator guides you.',
+    start:'Click to start', soundOn:'🔊 Sound on, please', done:"I'm done", skip:'Skip ▶', locked:'Locked',
+    how:'How to play', st1:'Red number = carbon that machine releases', st2:'Click a machine, press "Fix it" (costs coins)', st3:'Get the carbon below 60 before time runs out',
+    emits:'Releases', fixLbl:'Fix', cut:'Cuts', fixIt:c=>`Fix it · 💰${c}`, noMoney:'Not enough coins', fixed:'✔ Fixed',
+    s1tag:'Carbon the factory makes itself', s2tag:'???', s3tag:'???',
+    win:p=>`Carbon cut by ${p}%!`, none:'Nothing cut yet', wait:'But wait...',
+    q2:'Where does the electricity come from?', q3:'What about everything outside the fence?', fence:'SCOPE 1 · INSIDE THE FENCE', click:'Click!',
+    cutLine:p=>`Scope 1 cut by ${p}%`,
     ask:'Scope 2 & 3 are still hidden', askSub:'Talk to our team to unlock the biggest part', again:'Play again',
     ranks:['Keep trying','Nice work!','Carbon Hero!'],
     src:{
       boiler:['Coal boiler','Burns coal to make steam','Switch to a biomass boiler'],
-      truck:['Company trucks','Burns diesel every trip','Switch to EV trucks'],
-      ac:['Aircon refrigerant leak','Refrigerant is a powerful greenhouse gas','Use low-GWP refrigerant'],
-      lpg:['LPG forklifts','Burns LPG gas','Switch to electric forklifts'],
-      water:['Wastewater pond','Dirty water releases methane','Add biogas capture'],
-      gen:['Diesel generator','Burns diesel in blackouts','Solar panels + battery'],
+      truck:['Company trucks','Burn diesel on every trip','Switch to electric (EV) trucks'],
+      ac:['Aircon (refrigerant leak)','Leaking refrigerant heats the planet far more than carbon','Switch to a planet-friendly refrigerant'],
+      lpg:['LPG forklifts','Burn LPG gas for fuel','Switch to electric forklifts'],
+      water:['Wastewater pond','Dirty water releases methane gas','Capture the gas as biogas'],
+      gen:['Diesel generator','Burns diesel whenever the power goes out','Solar panels + battery'],
     }
   }
 };
 
 /* ---------- state ---------- */
-const S = {phase:'attract', lang:'th', budget:BUDGET, time:PLAY_SECONDS, fixed:new Set(), sel:null, tick:null, timers:[]};
-try{ const l = localStorage.getItem('ftf-lang'); if(l==='en'||l==='th') S.lang=l; }catch(e){}
+const S = {phase:'attract', lang:'th', muted:false, budget:BUDGET, time:PLAY_SECONDS, fixed:new Set(), sel:null, tick:null, timers:[], run:0, step:0, goalSaid:false};
+try{ const l=localStorage.getItem('ftf-lang'); if(l==='en'||l==='th') S.lang=l; S.muted=localStorage.getItem('ftf-mute')==='1'; }catch(e){}
 const $ = id => document.getElementById(id);
 const stage = $('stage');
 const L = () => T[S.lang];
@@ -251,14 +334,46 @@ function fit(){
 }
 addEventListener('resize', fit); fit();
 
+/* ---------- narrator ---------- */
+const AUD = {}; let cur = null, capTimer = null;
+const lineText = (id, lang=S.lang) => { const v = LINES[lang][id]; return Array.isArray(v) ? v[0] : v; };
+function clip(id, lang=S.lang){
+  const k = lang+'/'+id;
+  if(!AUD[k]){ AUD[k] = new Audio(`audio/${k}.mp3`); AUD[k].preload = 'auto'; }
+  return AUD[k];
+}
+function preload(){ Object.keys(LINES[S.lang]).forEach(id => clip(id)); }
+function stopVoice(){ if(cur){ cur.pause(); cur = null; } clearTimeout(capTimer); $('caption').classList.remove('show'); }
+function say(id){
+  const text = lineText(id); if(!text) return Promise.resolve();
+  if(cur){ cur.pause(); }
+  clearTimeout(capTimer);
+  $('capText').textContent = text; $('caption').classList.add('show');
+  const a = clip(id); cur = a; a.muted = S.muted;
+  try{ a.currentTime = 0; }catch(e){}
+  const est = 1500 + text.length * 75;           // fallback if audio cannot play
+  return new Promise(res => {
+    let done = false;
+    const fin = () => {
+      if(done) return; done = true; a.onended = null; clearTimeout(guard);
+      if(cur === a){ capTimer = setTimeout(()=>$('caption').classList.remove('show'), 1500); }
+      res();
+    };
+    const guard = setTimeout(fin, est + 6000);
+    a.onended = fin;
+    a.onerror = () => setTimeout(fin, est);
+    a.play().catch(() => setTimeout(fin, est));
+  });
+}
+
 /* ---------- isometric drawing ---------- */
 const TW=76, TH=38, CX=650, CY=205;
 const P = (x,y,z=0) => [CX+(x-y)*TW/2, CY+(x+y)*TH/2 - z];
 const pts = a => a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-function box(x,y,w,d,h,c,st=''){
-  const t=[P(x,y,h),P(x+w,y,h),P(x+w,y+d,h),P(x,y+d,h)];
-  const r=[P(x+w,y),P(x+w,y+d),P(x+w,y+d,h),P(x+w,y,h)];
-  const l=[P(x,y+d),P(x+w,y+d),P(x+w,y+d,h),P(x,y+d,h)];
+function box(x,y,w,d,h,c,st='',lift=0){
+  const t=[P(x,y,h+lift),P(x+w,y,h+lift),P(x+w,y+d,h+lift),P(x,y+d,h+lift)];
+  const r=[P(x+w,y,lift),P(x+w,y+d,lift),P(x+w,y+d,h+lift),P(x+w,y,h+lift)];
+  const l=[P(x,y+d,lift),P(x+w,y+d,lift),P(x+w,y+d,h+lift),P(x,y+d,h+lift)];
   const s = st?` stroke="${st}" stroke-width="2.5" stroke-linejoin="round"`:'';
   return `<polygon points="${pts(l)}" fill="${c[1]}"${s}/><polygon points="${pts(r)}" fill="${c[2]}"${s}/><polygon points="${pts(t)}" fill="${c[0]}"${s}/>`;
 }
@@ -271,51 +386,42 @@ function puffs(x,y,z,n=3,col='#9aa6b4',big=1){
   for(let i=0;i<n;i++) o+=`<circle class="puff" cx="${sx}" cy="${sy}" r="${14*big}" fill="${col}" style="animation-delay:${(i*2.4/n).toFixed(2)}s"/>`;
   return o;
 }
-const GREY=['#4d5d70','#2f3b4a','#3c4a5b'], DARK=['#39434f','#222a33','#2c3540'];
+const DARK=['#39434f','#222a33','#2c3540'];
+const src = (id,inner) => `<g class="src" data-id="${id}">${inner}</g>`;
 
 function buildPlant(){
   let g='';
-  // ground + fence (scope 1 boundary)
   g+=`<polygon points="${pts([P(0,0),P(16,0),P(16,16),P(0,16)])}" fill="#16212c" stroke="var(--s1)" stroke-width="4" stroke-dasharray="18 12"/>`;
   g+=`<polygon points="${pts([P(0,16),P(16,16),P(16,16,-14),P(0,16,-14)])}" fill="#0f171f"/><polygon points="${pts([P(16,0),P(16,16),P(16,16,-14),P(16,0,-14)])}" fill="#121b25"/>`;
   const [fx,fy]=P(1,16.6);
   g+=`<text id="fenceTxt" x="${fx}" y="${fy}" fill="var(--s1)" font-size="24" font-weight="800" transform="rotate(26.57 ${fx} ${fy})"></text>`;
-  // road
   g+=`<polygon points="${pts([P(8,10.5),P(16,10.5),P(16,15.5),P(8,15.5)])}" fill="#1d2935"/>`;
 
-  // water pond
   let w=`<polygon points="${pts([P(1,11),P(5.5,11),P(5.5,15.2),P(1,15.2)])}" fill="#3b4a2f" stroke="#58653e" stroke-width="5"/>`;
   [[2,12.2],[3.6,13.4],[2.4,14.3],[4.4,12]].forEach(([a,b],i)=>{const[sx,sy]=P(a,b);w+=`<circle class="bub" cx="${sx}" cy="${sy}" r="9" fill="#8fa65a" style="animation-delay:${i*.45}s"/>`});
   g+=src('water',w);
 
-  // boiler + chimney
   g+=src('boiler', cyl(13.8,1.6,20,230,['#6b4f45','#4a3630','#5a423a']) + puffs(13.8,1.6,236,4,'#7d8794',1.5)
-     + box(10,1.5,3,3,80,['#7a5a4c','#4f3a31','#634a3f']) + `<text x="${P(11.5,4.5,30)[0]}" y="${P(11.5,4.5,30)[1]}" font-size="24" fill="#ffb199" font-weight="800" text-anchor="middle">🔥</text>`);
+     + box(10,1.5,3,3,80,['#7a5a4c','#4f3a31','#634a3f']) + `<text x="${P(11.5,4.5,30)[0]}" y="${P(11.5,4.5,30)[1]}" font-size="24" text-anchor="middle">🔥</text>`);
 
-  // main building
   g+=box(3,2.5,6,5.5,120,['#5c6f84','#34404e','#455467']);
   for(let i=0;i<4;i++){const a=P(3.6+i*1.4,8,85),b=P(4.6+i*1.4,8,85),c=P(4.6+i*1.4,8,55),d=P(3.6+i*1.4,8,55);g+=`<polygon points="${pts([a,b,c,d])}" fill="#ffd77a" opacity=".55"/>`}
-  for(let i=0;i<3;i++) g+=box(3.5+i*1.9,3,1.2,4.5,12,['#6d8299','#3c4958','#4f6075']).replace(/points="([^"]+)"/g,(m,p)=>`points="${p.split(' ').map(q=>{const[x,y]=q.split(',');return x+','+(y-120)}).join(' ')}"`);
+  for(let i=0;i<3;i++) g+=box(3.5+i*1.9,3,1.2,4.5,12,['#6d8299','#3c4958','#4f6075'],'',120);
 
-  // aircon units
   let ac='';
   for(let i=0;i<3;i++){ac+=box(2+i*1.35,9,1.1,1.1,30,['#9fb3c6','#5f7184','#7a8ea2']);const[sx,sy]=P(2.55+i*1.35,9.55,30);ac+=`<ellipse cx="${sx}" cy="${sy}" rx="17" ry="8.5" fill="#2b3642"/>`}
   [[2.3,9.6],[3.6,9.6],[5,9.6]].forEach(([a,b],i)=>{const[sx,sy]=P(a,b,36);ac+=`<circle class="puff" cx="${sx}" cy="${sy}" r="9" fill="#bfe3ff" style="animation-delay:${i*.7}s"/>`});
   g+=src('ac',ac);
 
-  // LPG tank + forklift
   let lp=box(5.4,12.4,1.7,1.2,24,['#ffcc6a','#c58f22','#e0a83a']) + cyl(6.3,12.6,30,70,['#e9eef3','#aab4bf','#cfd7df']);
   const [lx,ly]=P(6.3,12.6,35); lp+=`<text x="${lx}" y="${ly}" font-size="22" font-weight="800" fill="#c0392b" text-anchor="middle">LPG</text>`;
   lp+=puffs(5.6,13.2,30,2,'#9aa6b4',.8);
   g+=src('lpg',lp);
 
-  // generator
-  let gn=box(11,7,2.6,1.6,46,['#3f6f5a','#24453a','#2f5848']) + cyl(13.2,7.5,8,80,DARK) + puffs(13.2,7.5,84,3,'#6c7682',1);
-  g+=src('gen',gn);
+  g+=src('gen', box(11,7,2.6,1.6,46,['#3f6f5a','#24453a','#2f5848']) + cyl(13.2,7.5,8,80,DARK) + puffs(13.2,7.5,84,3,'#6c7682',1));
 
-  // trucks
   let tr='';
-  [[9,11.4],[9,13.6]].forEach(([x,y],i)=>{
+  [[9,11.4],[9,13.6]].forEach(([x,y])=>{
     tr+=box(x,y,3.1,1.4,52,['#e8edf2','#a9b3be','#c8d1da'])+box(x+3.1,y,1.2,1.4,40,['#ff6b5e','#b8382f','#d84a40']);
     tr+=puffs(x-.1,y+1.2,10,2,'#8b95a1',.9);
   });
@@ -323,7 +429,6 @@ function buildPlant(){
   $('plant').innerHTML=g;
   document.querySelectorAll('.src').forEach(el=>el.addEventListener('click',()=>select(el.dataset.id)));
 }
-function src(id,inner){return `<g class="src" data-id="${id}">${inner}</g>`}
 
 const PIN_AT={boiler:[11.5,3,300],truck:[11.5,12.6,110],ac:[2.2,9.4,100],lpg:[6.9,13.4,140],water:[3.2,13.1,70],gen:[12.3,7.8,140]};
 function buildPins(){
@@ -332,38 +437,34 @@ function buildPins(){
     const[x,y]=P(...PIN_AT[s.id]);
     g+=`<g class="pin" id="pin-${s.id}" transform="translate(${x},${y})"><g class="pinpulse"><rect x="-58" y="-30" width="116" height="52" rx="26" fill="var(--red)"/><path d="M-10 21 L0 34 L10 21Z" fill="var(--red)"/><text class="tag" y="5" text-anchor="middle" fill="#fff"></text></g></g>`;
   });
+  // pointing hand that teaches the first click (sits beside the biggest polluter)
+  const[hx,hy]=P(...PIN_AT.boiler);
+  g+=`<g transform="translate(${hx+60},${hy+90})"><g id="hand"><text font-size="64">👆</text><text id="handTxt" x="70" y="-14" font-size="34" font-weight="800" fill="#fff"></text></g></g>`;
   $('pins').innerHTML=g;
   SRC.forEach(s=>$('pin-'+s.id).addEventListener('click',()=>select(s.id)));
 }
 
 function buildOuter(){
   const SL='#141b25', s2=['#1b2836','#121b26','#172230'], s3=['#2a2617','#1a170e','#221e12'];
-  let g='';
-  // power lines from plant to factory
-  for(let x=-10;x<=-1;x+=3){const[a,b]=P(x,5);g+=`<polyline points="${a-14},${b} ${a},${b-90} ${a+14},${b}" fill="none" stroke="var(--s2)" stroke-width="4"/><line x1="${a-22}" y1="${b-70}" x2="${a+22}" y2="${b-70}" stroke="var(--s2)" stroke-width="4"/>`}
-  const w1=P(-10,5,70),w2=P(-1,5,70); g+=`<line x1="${w1[0]}" y1="${w1[1]}" x2="${w2[0]}" y2="${w2[1]}" stroke="var(--s2)" stroke-width="3" stroke-dasharray="10 8"/>`;
-  // power plant (scope 2)
-  g+=box(-17,2,5,5,90,s2,'var(--s2)');
-  [[-17.5,8.5],[-14.5,9.5]].forEach(([x,y])=>{const[sx,sy]=P(x,y);g+=`<path d="M${sx-46} ${sy} Q${sx-26} ${sy-90} ${sx-34} ${sy-170} L${sx+34} ${sy-170} Q${sx+26} ${sy-90} ${sx+46} ${sy}Z" fill="${SL}" stroke="var(--s2)" stroke-width="3"/>`});
-  g+=lock(-15,6,330,'var(--s2)','q2');
-  // scope 3: supplier factory
-  g+=box(2,-16,6,4,90,s3,'var(--s3)')+cyl(8.6,-15,14,170,s3,'var(--s3)');
-  g+=lock(5,-14,300,'var(--s3)','q3');
-  // roads out
-  [[16,8,26,8],[8,0,8,-11],[8,16,8,26]].forEach(([a,b,c,d])=>{const p1=P(a,b),p2=P(c,d);g+=`<line x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" stroke="#3a3420" stroke-width="18" stroke-linecap="round"/>`});
-  // houses (commute)
-  for(let i=0;i<3;i++)for(let j=0;j<2;j++)g+=box(20+j*3,3+i*3,2,2,40,s3,'var(--s3)');
-  g+=lockSmall(22.5,7,140);
-  // ship / port
-  const[hx,hy]=P(26,19);g+=`<path d="M${hx-150} ${hy-40} L${hx+150} ${hy-40} L${hx+110} ${hy+20} L${hx-120} ${hy+20}Z" fill="${SL}" stroke="var(--s3)" stroke-width="3"/>`;
-  for(let i=0;i<4;i++)g+=`<rect x="${hx-110+i*52}" y="${hy-90}" width="46" height="50" fill="#2a2617" stroke="var(--s3)" stroke-width="2.5"/>`;
-  g+=lockSmall(26,19,150);
-  // landfill / product end of life
-  const[mx,my]=P(4,27);g+=`<path d="M${mx-170} ${my} Q${mx} ${my-170} ${mx+170} ${my}Z" fill="${SL}" stroke="var(--s3)" stroke-width="3"/>`;
-  g+=lockSmall(4,27,170);
-  // shop / customers
-  g+=box(16,22,4,3,60,s3,'var(--s3)');g+=lockSmall(18,23.5,140);
-  $('outer').innerHTML=g;
+  let a='', b='';
+  for(let x=-10;x<=-1;x+=3){const[p,q]=P(x,5);a+=`<polyline points="${p-14},${q} ${p},${q-90} ${p+14},${q}" fill="none" stroke="var(--s2)" stroke-width="4"/><line x1="${p-22}" y1="${q-70}" x2="${p+22}" y2="${q-70}" stroke="var(--s2)" stroke-width="4"/>`}
+  const w1=P(-10,5,70),w2=P(-1,5,70); a+=`<line x1="${w1[0]}" y1="${w1[1]}" x2="${w2[0]}" y2="${w2[1]}" stroke="var(--s2)" stroke-width="3" stroke-dasharray="10 8"/>`;
+  a+=box(-17,2,5,5,90,s2,'var(--s2)');
+  [[-17.5,8.5],[-14.5,9.5]].forEach(([x,y])=>{const[sx,sy]=P(x,y);a+=`<path d="M${sx-46} ${sy} Q${sx-26} ${sy-90} ${sx-34} ${sy-170} L${sx+34} ${sy-170} Q${sx+26} ${sy-90} ${sx+46} ${sy}Z" fill="${SL}" stroke="var(--s2)" stroke-width="3"/>`});
+  a+=lock(-15,6,330,'var(--s2)','q2');
+
+  [[16,8,26,8],[8,0,8,-11],[8,16,8,26]].forEach(([p,q,r,s])=>{const p1=P(p,q),p2=P(r,s);b+=`<line x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" stroke="#3a3420" stroke-width="18" stroke-linecap="round"/>`});
+  b+=box(2,-16,6,4,90,s3,'var(--s3)')+cyl(8.6,-15,14,170,s3,'var(--s3)');
+  b+=lock(5,-14,300,'var(--s3)','q3');
+  for(let i=0;i<3;i++)for(let j=0;j<2;j++)b+=box(20+j*3,3+i*3,2,2,40,s3,'var(--s3)');
+  b+=lockSmall(22.5,7,140);
+  const[hx,hy]=P(26,19);b+=`<path d="M${hx-150} ${hy-40} L${hx+150} ${hy-40} L${hx+110} ${hy+20} L${hx-120} ${hy+20}Z" fill="${SL}" stroke="var(--s3)" stroke-width="3"/>`;
+  for(let i=0;i<4;i++)b+=`<rect x="${hx-110+i*52}" y="${hy-90}" width="46" height="50" fill="#2a2617" stroke="var(--s3)" stroke-width="2.5"/>`;
+  b+=lockSmall(26,19,150);
+  const[mx,my]=P(4,27);b+=`<path d="M${mx-170} ${my} Q${mx} ${my-170} ${mx+170} ${my}Z" fill="${SL}" stroke="var(--s3)" stroke-width="3"/>`;
+  b+=lockSmall(4,27,170);
+  b+=box(16,22,4,3,60,s3,'var(--s3)')+lockSmall(18,23.5,140);
+  $('outer').innerHTML=`<g id="o3">${b}</g><g id="o2">${a}</g>`;
 }
 function lock(x,y,z,c,q){
   const[sx,sy]=P(x,y,z);
@@ -373,65 +474,95 @@ function lockSmall(x,y,z){const[sx,sy]=P(x,y,z);return `<g transform="translate(
 
 /* ---------- panel ---------- */
 function buildBoard(){
-  const row=(n,c,cells,tot,tag,locked)=>`<div><div class="row ${locked?'locked':''}" style="--c:var(${c})"><div class="no">${n}</div><div class="cells">${cells}</div><div class="tot">${tot}</div></div><div class="rowtag"><span>Scope ${n} · <span data-i18n="${tag}"></span></span>${locked?'<span>🔒 <span data-i18n="locked"></span></span>':''}</div></div>`;
+  const row=(n,c,cells,tot,tag,locked)=>`<div><div class="row ${locked?'locked':''}" id="row${n}" style="--c:var(${c})"><div class="no">${n}</div><div class="cells">${cells}</div><div class="tot">${tot}</div></div><div class="rowtag"><span>Scope ${n} · <span data-i18n="${tag}"></span></span>${locked?'<span>🔒 <span data-i18n="locked"></span></span>':''}</div></div>`;
   const q='<div class="cell">?</div>'.repeat(6);
-  const c1=SRC.map(s=>`<div class="cell" id="cell-${s.id}"><span class="ic">${s.icon}</span><span class="v"></span></div>`).join('');
+  const c1=SRC.map(s=>`<div class="cell" id="cell-${s.id}"><span>${s.icon}</span><span class="v"></span></div>`).join('');
   $('board').innerHTML=row(3,'--s3',q,'?','s3tag',1)+row(2,'--s2',q,'?','s2tag',1)+row(1,'--s1',c1,'<span id="tot1"></span>','s1tag',0);
+  $('goalMark').style.left=(GOAL/BASE*100)+'%';
 }
 
+function howHTML(){
+  const t=L();
+  return `<h3>📋 ${t.how}</h3><div class="how">${[1,2,3].map(i=>`<div class="${S.step===i?'on':''}"><b>${i}</b>${t['st'+i]}</div>`).join('')}</div>`;
+}
 function renderInfo(){
   const t=L(), el=$('info');
-  if(S.phase!=='play'){el.innerHTML='';return}
-  if(!S.sel){el.innerHTML=`<div class="hint"><b>👈</b>${t.hint}</div>`;}
-  else{
-    const s=SRC.find(x=>x.id===S.sel), [name,desc,fixTxt]=t.src[s.id], f=S.fixed.has(s.id);
-    const can=S.budget>=s.cost;
-    el.innerHTML=`<h3><span>${s.icon}</span>${name}</h3><div class="desc">${desc}</div>
-      <div class="fix"><div class="t">→ ${fixTxt}</div><div class="stats"><span class="cut">−${s.cut} tCO₂e</span><span class="cost">💰 ${s.cost}</span></div>
-      ${f?`<div class="done-note">${t.fixed}</div>`:`<button class="btn" id="fixBtn" ${can?'':'disabled'}>${can?t.fixIt:t.noMoney}</button>`}</div>
-`;
-    const fb=$('fixBtn'); if(fb) fb.onclick=()=>fix(s.id);
-  }
+  if(S.phase==='intro'){ el.innerHTML=howHTML()+`<button class="btn ghost" id="skipBtn">${t.skip}</button>`; $('skipBtn').onclick=skipIntro; return; }
+  if(S.phase!=='play'){ el.innerHTML=''; return; }
+  if(!S.sel){ el.innerHTML=howHTML(); return; }
+  const s=SRC.find(x=>x.id===S.sel), [name,desc,fixTxt]=t.src[s.id], f=S.fixed.has(s.id), can=S.budget>=s.cost;
+  el.innerHTML=`<h3><span>${s.icon}</span>${name}</h3><div class="desc">${desc}</div>
+    <div class="emit">${t.emits} <b>${f?s.e-s.cut:s.e}</b> ${t.unit}</div>
+    <div class="fix"><div class="t">${t.fixLbl}: ${fixTxt}</div><div class="stats"><span class="cut">${t.cut} −${s.cut}</span><span class="cost">💰 ${s.cost} ${t.coins}</span></div>
+    ${f?`<div class="done-note">${t.fixed}</div>`:`<button class="btn" id="fixBtn" ${can?'':'disabled'}>${can?t.fixIt(s.cost):t.noMoney}</button>`}</div>`;
+  const fb=$('fixBtn'); if(fb) fb.onclick=()=>fix(s.id);
 }
 
+const total=()=>SRC.reduce((a,s)=>a+(S.fixed.has(s.id)?s.e-s.cut:s.e),0);
+const pct=()=>Math.round((BASE-total())/BASE*100);
 function render(){
   const tot=total();
   $('budget').textContent=S.budget;
   $('time').textContent=S.time;
   $('timePill').classList.toggle('low',S.phase==='play'&&S.time<=10);
-  const n=$('total'); n.firstChild.nodeValue=tot; n.classList.toggle('good',tot<=60);
+  const n=$('total'); n.firstChild.nodeValue=tot; n.classList.toggle('good',tot<GOAL);
   $('bar').style.width=(tot/BASE*100)+'%';
   $('tot1').textContent=tot;
   SRC.forEach(s=>{
-    const f=S.fixed.has(s.id), v=f?s.e-s.cut:s.e;
+    const f=S.fixed.has(s.id), v=f?s.e-s.cut:s.e, col=f?'var(--s1)':'var(--red)';
     const c=$('cell-'+s.id); c.classList.toggle('fixed',f); c.classList.toggle('sel',S.sel===s.id); c.querySelector('.v').textContent=v;
-    const p=$('pin-'+s.id); p.querySelector('rect').setAttribute('fill',f?'var(--s1)':'var(--red)'); p.querySelector('path').setAttribute('fill',f?'var(--s1)':'var(--red)');
-    p.querySelector('.tag').textContent=(f?'✔ ':'')+v; p.querySelector('.tag').setAttribute('fill',f?'#06210f':'#fff');
-    document.querySelector(`.src[data-id="${s.id}"]`).classList.toggle('fixed',f);
-    document.querySelector(`.src[data-id="${s.id}"]`).classList.toggle('sel',S.sel===s.id);
+    const p=$('pin-'+s.id); p.querySelector('rect').setAttribute('fill',col); p.querySelector('path').setAttribute('fill',col);
+    const tag=p.querySelector('.tag'); tag.textContent=(f?'✔ ':'')+v; tag.setAttribute('fill',f?'#06210f':'#fff');
+    const g=document.querySelector(`.src[data-id="${s.id}"]`); g.classList.toggle('fixed',f); g.classList.toggle('sel',S.sel===s.id);
   });
+  $('hand').classList.toggle('on', S.phase==='play' && !S.sel && S.fixed.size===0);
+  $('mute').textContent = S.muted ? '🔇' : '🔊';
   renderInfo();
 }
-const total=()=>SRC.reduce((a,s)=>a+(S.fixed.has(s.id)?s.e-s.cut:s.e),0);
-const pct=()=>Math.round((BASE-total())/BASE*100);
 
 function applyLang(){
   const t=L(); document.documentElement.lang=S.lang;
   document.querySelectorAll('[data-i18n]').forEach(el=>el.innerHTML=t[el.dataset.i18n]);
   document.querySelectorAll('#lang span').forEach(s=>s.classList.toggle('on',s.dataset.l===S.lang));
-  $('fenceTxt').textContent=t.fence; $('q2').textContent=t.q2; $('q3').textContent=t.q3;
+  $('fenceTxt').textContent=t.fence; $('q2').textContent=t.q2; $('q3').textContent=t.q3; $('handTxt').textContent=t.click;
   if(S.phase==='end') fillEnd();
-  render();
+  preload(); render();
 }
 
 /* ---------- game flow ---------- */
-function select(id){ if(S.phase!=='play')return; S.sel=id; render(); }
+function setPhase(p){ S.phase=p; ['attract','intro','play','reveal','end'].forEach(c=>stage.classList.toggle(c,c===p)); }
+const hl = v => stage.dataset.hl = v;
+function later(fn,ms){ S.timers.push(setTimeout(fn,ms)); }
+
+const INTRO = [['intro1',0,''],['intro2',1,'pins'],['intro3',2,'budget'],['intro4',3,'meter']];
+async function startGame(){
+  reset(true); preload();
+  const run=++S.run; setPhase('intro'); render();
+  for(const [id,step,h] of INTRO){
+    S.step=step; hl(h); render();
+    await say(id);
+    if(run!==S.run) return;
+  }
+  beginPlay();
+}
+function skipIntro(){ if(S.phase!=='intro') return; stopVoice(); beginPlay(); }
+function beginPlay(){
+  S.run++; S.step=0; hl(''); setPhase('play'); render();
+  S.tick=setInterval(()=>{
+    S.time--; render();
+    if(S.time===10) say('time10');
+    if(S.time<=0) endGame();
+  },1000);
+}
+
+function select(id){ if(S.phase!=='play') return; S.sel=id; render(); say('src_'+id); }
 function fix(id){
-  const s=SRC.find(x=>x.id===id); if(S.fixed.has(id)||S.budget<s.cost)return;
+  const s=SRC.find(x=>x.id===id); if(S.phase!=='play'||S.fixed.has(id)||S.budget<s.cost) return;
   S.budget-=s.cost; S.fixed.add(id); render();
   floatText(id,'−'+s.cut);
+  if(!S.goalSaid && total()<GOAL){ S.goalSaid=true; say('goal'); } else say('ok'+(1+Math.floor(Math.random()*3)));
   const left=SRC.filter(x=>!S.fixed.has(x.id));
-  if(!left.length||left.every(x=>x.cost>S.budget)) later(endGame,1400);
+  if(!left.length||left.every(x=>x.cost>S.budget)) later(endGame,2200);
 }
 function floatText(id,txt){
   const r=$('pin-'+id).getBoundingClientRect(), sr=stage.getBoundingClientRect(), k=sr.width/1920;
@@ -439,35 +570,33 @@ function floatText(id,txt){
   d.style.left=((r.left-sr.left)/k)+'px'; d.style.top=((r.top-sr.top)/k-40)+'px';
   stage.appendChild(d); setTimeout(()=>d.remove(),1300);
 }
-function later(fn,ms){S.timers.push(setTimeout(fn,ms))}
-function setPhase(p){S.phase=p; stage.className=p+(stage.classList.contains('zoom')?' zoom':'')}
 
-function startGame(){
-  reset(true); setPhase('play'); render();
-  S.tick=setInterval(()=>{
-    S.time--; render();
-    if(S.time<=0) endGame();
-  },1000);
-}
-function endGame(){
-  if(S.phase!=='play')return;
+async function endGame(){
+  if(S.phase!=='play') return;
   clearInterval(S.tick); S.sel=null; setPhase('reveal'); render();
-  const p=pct(), b=$('banner');
+  const run=++S.run, ok=()=>run===S.run, p=pct(), b=$('banner');
   b.className='show win'; b.textContent=p>0?L().win(p):L().none;
   if(p>0) confetti();
-  later(()=>{b.className='show wait'; b.textContent=L().wait},2600);
-  later(()=>{b.className=''; stage.classList.add('zoom'); $('panel').classList.add('tease')},4000);
-  later(()=>{setPhase('end'); fillEnd()},7200);
-  later(()=>reset(),40000);
+  await say(p>0?'win':'none'); if(!ok()) return;
+  b.className='show wait'; b.textContent=L().wait;
+  stage.classList.add('zoom'); $('panel').classList.add('tease');
+  later(()=>b.className='',1800);
+  await say('reveal'); if(!ok()) return;
+  hl('s2'); await say('s2'); if(!ok()) return;
+  hl('s3'); await say('s3'); if(!ok()) return;
+  hl(''); setPhase('end'); fillEnd();
+  await say('end'); if(!ok()) return;
+  later(()=>reset(),30000);
 }
 function fillEnd(){
-  const p=pct(), r=L().ranks; $('rank').textContent=r[p>=40?2:p>=25?1:0]; $('cutLine').textContent=L().cut(p);
+  const p=pct(), r=L().ranks; $('rank').textContent=r[total()<GOAL?2:p>=25?1:0]; $('cutLine').textContent=L().cutLine(p);
 }
 function reset(silent){
-  clearInterval(S.tick); S.timers.forEach(clearTimeout); S.timers=[];
-  Object.assign(S,{budget:BUDGET,time:PLAY_SECONDS,sel:null}); S.fixed=new Set();
-  stage.classList.remove('zoom'); $('panel').classList.remove('tease'); $('banner').className=''; $('confetti').innerHTML='';
-  if(!silent){setPhase('attract')} render();
+  S.run++; stopVoice(); clearInterval(S.tick); S.timers.forEach(clearTimeout); S.timers=[];
+  Object.assign(S,{budget:BUDGET,time:PLAY_SECONDS,sel:null,step:0,goalSaid:false}); S.fixed=new Set();
+  stage.classList.remove('zoom'); $('panel').classList.remove('tease'); $('banner').className=''; $('confetti').innerHTML=''; hl('');
+  if(!silent) setPhase('attract');
+  render();
 }
 function confetti(){
   const c=$('confetti'), cols=['#3ddc84','#3aa8ff','#ffc93c','#ff4d5e','#fff'];
@@ -476,15 +605,19 @@ function confetti(){
 }
 
 /* ---------- input ---------- */
+function toggleMute(){ S.muted=!S.muted; if(cur) cur.muted=S.muted; try{localStorage.setItem('ftf-mute',S.muted?'1':'0')}catch(e){} render(); }
 $('startBtn').onclick=startGame;
 $('doneBtn').onclick=()=>endGame();
 $('againBtn').onclick=startGame;
-$('attract').addEventListener('click',e=>{if(e.target.id!=='startBtn')startGame()});
-$('lang').onclick=()=>{S.lang=S.lang==='th'?'en':'th'; try{localStorage.setItem('ftf-lang',S.lang)}catch(e){} applyLang()};
+$('attract').addEventListener('click',e=>{ if(e.target.id!=='startBtn') startGame(); });
+$('lang').onclick=()=>{ S.lang=S.lang==='th'?'en':'th'; try{localStorage.setItem('ftf-lang',S.lang)}catch(e){} applyLang(); };
+$('mute').onclick=toggleMute;
 addEventListener('keydown',e=>{               // staff shortcuts
-  if(e.key==='r'||e.key==='R') reset();
-  if(e.key==='l'||e.key==='L') $('lang').click();
-  if(e.key==='f'||e.key==='F') document.documentElement.requestFullscreen?.();
+  const k=e.key.toLowerCase();
+  if(k==='r') reset();
+  if(k==='l') $('lang').click();
+  if(k==='m') toggleMute();
+  if(k==='f') document.documentElement.requestFullscreen?.();
 });
 
 buildPlant(); buildPins(); buildOuter(); buildBoard(); applyLang();
