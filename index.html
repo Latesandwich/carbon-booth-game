@@ -414,12 +414,13 @@ function buildPlant(){
   [[2,12.2],[3.6,13.4],[2.4,14.3],[4.4,12]].forEach(([a,b],i)=>{const[sx,sy]=P(a,b);w+=`<circle class="bub" cx="${sx}" cy="${sy}" r="9" fill="#8fa65a" style="animation-delay:${i*.45}s"/>`});
   g+=src('water',w);
 
-  g+=src('boiler', cyl(13.8,1.6,20,230,['#6b4f45','#4a3630','#5a423a']) + puffs(13.8,1.6,236,4,'#7d8794',1.5)
-     + box(10,1.5,3,3,80,['#7a5a4c','#4f3a31','#634a3f']) + `<text x="${P(11.5,4.5,30)[0]}" y="${P(11.5,4.5,30)[1]}" font-size="24" text-anchor="middle">🔥</text>`);
-
+  // back to front: building (x<=9) is behind the boiler house (x>=10), so it is painted first
   g+=box(3,2.5,6,5.5,120,['#5c6f84','#34404e','#455467']);
   for(let i=0;i<4;i++){const a=P(3.6+i*1.4,8,85),b=P(4.6+i*1.4,8,85),c=P(4.6+i*1.4,8,55),d=P(3.6+i*1.4,8,55);g+=`<polygon points="${pts([a,b,c,d])}" fill="#ffd77a" opacity=".55"/>`}
   for(let i=0;i<3;i++) g+=box(3.5+i*1.9,3,1.2,4.5,12,['#6d8299','#3c4958','#4f6075'],'',120);
+
+  g+=src('boiler', box(10,1.5,3,3,80,['#7a5a4c','#4f3a31','#634a3f']) + `<text x="${P(11.5,4.5,30)[0]}" y="${P(11.5,4.5,30)[1]}" font-size="24" text-anchor="middle">🔥</text>`
+     + cyl(13.8,1.6,20,230,['#6b4f45','#4a3630','#5a423a']) + puffs(13.8,1.6,236,4,'#7d8794',1.5));   // chimney (x 13.8) stands in front of the house (x<=13)
 
   let ac='';
   for(let i=0;i<3;i++){ac+=box(2+i*1.35,9,1.1,1.1,30,['#9fb3c6','#5f7184','#7a8ea2']);const[sx,sy]=P(2.55+i*1.35,9.55,30);ac+=`<ellipse cx="${sx}" cy="${sy}" rx="17" ry="8.5" fill="#2b3642"/>`}
