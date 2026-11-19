@@ -386,7 +386,8 @@ const AUD = {}; let cur = null, capTimer = null;
 const lineText = (id, lang=S.lang) => { const v = LINES[lang][id]; return Array.isArray(v) ? v[0] : v; };
 function clip(id, lang=S.lang){
   const k = lang+'/'+id;
-  if(!AUD[k]){ AUD[k] = new Audio(`audio/${k}.mp3`); AUD[k].preload = 'auto'; }
+  // the offline build (tools/build_offline.py) embeds every clip in window.EMBED_AUDIO
+  if(!AUD[k]){ AUD[k] = new Audio((window.EMBED_AUDIO||{})[k] || `audio/${k}.mp3`); AUD[k].preload = 'auto'; }
   return AUD[k];
 }
 function preload(){ Object.keys(LINES[S.lang]).forEach(id => clip(id)); }
