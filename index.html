@@ -5,12 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fix the Factory</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏭</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="tools/fonts/kanit.css" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fix Factory">
+<meta name="theme-color" content="#1f9d55">
 <style>
 :root{--panel:#ffffff;--line:#dbe3ec;--ink:#17202b;--mute:#5d6b7c;
   --s1:#1f9d55;--s1t:#15803d;--s2:#1c7fd6;--s3:#f2b01e;--s3t:#a86f00;--red:#ef3f52}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;background:#dfeefb;overflow:hidden;font-family:Kanit,"Leelawadee UI","Noto Sans Thai",system-ui,sans-serif;color:var(--ink);user-select:none}
+html,body{width:100%;height:100%;background:#dfeefb;overflow:hidden;touch-action:manipulation;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;font-family:Kanit,"Leelawadee UI","Noto Sans Thai",system-ui,sans-serif;color:var(--ink);user-select:none}
 body,button,.src,.pin{cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><path d='M4 3 L4 36 L13 28 L19 41 L25 38 L19 26 L31 26 Z' fill='white' stroke='black' stroke-width='2.5' stroke-linejoin='round'/></svg>") 4 3,auto}
 #stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;
   background:linear-gradient(180deg,#86c5f4 0%,#c4e4ff 48%,#eef7ff 100%)}
@@ -683,6 +690,8 @@ addEventListener('keydown',e=>{               // staff shortcuts
 });
 
 buildPlant(); buildSky(); buildPins(); buildOuter(); buildBoard(); applyLang();
+// keep a copy on the device so the home-screen app works with no internet (not used by the single offline file)
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
 </html>

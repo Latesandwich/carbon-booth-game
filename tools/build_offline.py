@@ -69,9 +69,11 @@ def audio_map():
 
 def main():
     html = (ROOT / "index.html").read_text(encoding="utf-8")
-    link = re.search(r'<link href="https://fonts\.googleapis\.com[^>]*>\n?', html)
-    assert link, "Google Fonts <link> not found"
+    link = re.search(r'<link href="tools/fonts/kanit\.css"[^>]*>\n?', html)
+    assert link, "font <link> not found"
     html = html.replace(link.group(0), "<style>\n" + font_css() + "</style>\n", 1)
+    # home-screen app files are not shipped in the single offline file
+    html = re.sub(r'<link rel="(manifest|apple-touch-icon)"[^>]*>\n?', "", html)
     anchor = "<script>\n/* ---------- config"
     assert anchor in html, "main script anchor not found"
     html = html.replace(anchor, "<script>window.EMBED_AUDIO=" + json.dumps(audio_map()) + ";</script>\n" + anchor, 1)
