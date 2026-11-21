@@ -185,6 +185,33 @@ header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:fle
 .float{position:absolute;font-size:56px;font-weight:800;color:var(--s1t);pointer-events:none;animation:floatup 1.2s ease-out forwards;
   text-shadow:0 3px 0 #fff,0 -3px 0 #fff,3px 0 0 #fff,-3px 0 0 #fff}
 @keyframes floatup{to{transform:translateY(-110px);opacity:0}}
+/* end card: phone number + buttons */
+#endcard .ask{font-size:30px}
+#phoneForm{display:flex;flex-direction:column;gap:6px;background:#f4f7fa;border-radius:16px;padding:12px 14px}
+#phoneForm label{font-size:21px;font-weight:600}
+.prow{display:flex;gap:10px}
+#phone{flex:1;min-width:0;font:inherit;font-size:30px;padding:6px 14px;border:2px solid var(--line);border-radius:12px;letter-spacing:1px;color:var(--ink);background:#fff;user-select:text;-webkit-user-select:text}
+#phone:focus{outline:none;border-color:var(--s1)}
+#phone:disabled{background:#eef7f1;color:var(--s1t)}
+#saveBtn{font-size:24px;padding:6px 18px}
+.pmsg{font-size:19px;min-height:22px;font-weight:700}.pmsg.ok{color:var(--s1t)}.pmsg.bad{color:var(--red)}
+.pnote{font-size:16px;color:var(--mute);line-height:1.3}
+.ebtns{display:flex;gap:10px}.ebtns .btn{flex:1}
+.btn.ghost2{background:#fff;color:var(--ink);border:2px solid var(--line);box-shadow:0 4px 0 #dbe3ec}
+/* header reset */
+#homeTop{font-size:30px;width:64px;height:60px;border-radius:999px;border:2px solid var(--line);background:var(--panel);box-shadow:0 6px 18px rgba(20,45,80,.12)}
+.attract #homeTop{visibility:hidden}
+/* staff panel */
+#staff{position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(10,20,30,.55)}
+#staff.on{display:flex}
+.sbox{width:1100px;max-height:940px;background:#fff;border-radius:24px;padding:28px 34px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.sbox h2{font-size:38px;font-weight:800}
+.sstats{font-size:30px;font-weight:700;color:var(--s1t)}
+.stable{overflow:auto;max-height:560px;font-size:22px;border:2px solid var(--line);border-radius:12px}
+.stable table{width:100%;border-collapse:collapse}.stable th,.stable td{padding:8px 14px;border-bottom:1px solid var(--line);text-align:left}
+.stable th{position:sticky;top:0;background:#f4f7fa}
+.sbtns{display:flex;gap:12px}.sbtns .btn{font-size:26px}
+
 </style>
 </head>
 <body>
@@ -199,6 +226,7 @@ header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:fle
     </div>
     <button id="lang" title="TH / EN (L)"><span data-l="th">ไทย</span><span data-l="en">EN</span></button>
     <button id="mute" title="Sound (M)">🔊</button>
+    <button id="homeTop" title="Back to start (R)">⟲</button>
   </header>
 
   <svg id="scene" viewBox="0 0 1300 970">
@@ -238,9 +266,18 @@ header{position:absolute;z-index:5;left:0;top:0;right:0;height:110px;display:fle
     <div id="endcard">
       <div class="grade"><b id="rank"></b><span id="cutLine"></span></div>
       <div class="ask"><span data-i18n="ask"></span><small data-i18n="askSub"></small></div>
-      <button class="btn" id="againBtn" data-i18n="again"></button>
+      <form id="phoneForm" autocomplete="off">
+        <label for="phone" data-i18n="phoneLbl"></label>
+        <div class="prow"><input id="phone" type="tel" inputmode="numeric" maxlength="14" data-ph="phonePh"><button class="btn" id="saveBtn" type="submit" data-i18n="save"></button></div>
+        <div class="pmsg" id="pmsg"></div>
+        <div class="pnote" data-i18n="phoneNote"></div>
+      </form>
+      <div class="ebtns"><button class="btn ghost2" id="homeBtn" type="button" data-i18n="backStart"></button><button class="btn" id="againBtn" type="button" data-i18n="again"></button></div>
     </div>
   </aside>
+  <div id="staff"><div class="sbox"><h2 data-i18n="staffTitle"></h2><div class="sstats" id="sstats"></div><div class="stable" id="stable"></div>
+    <div class="sbtns"><button class="btn" id="csvBtn" data-i18n="csv"></button><button class="btn ghost2" id="clearBtn" data-i18n="clearAll"></button><button class="btn ghost2" id="closeStaff" data-i18n="close"></button></div>
+    <div class="pnote" data-i18n="staffHow"></div></div></div>
 
   <div id="banner"></div>
   <div id="confetti"></div>
@@ -332,7 +369,7 @@ const T = {
     title:'ภารกิจลดคาร์บอนโรงงาน', coins:'เหรียญ', unit:'ตัน CO₂', meter:'คาร์บอนที่โรงงานปล่อย (Scope 1)', goalTag:'🎯 เป้า: ต่ำกว่า 60',
     bigTitle:'ช่วย<em>โรงงาน</em>นี้ลดคาร์บอน!', sub:'เกมสั้นๆ ไม่ต้องมีความรู้มาก่อน มีเสียงบรรยายพาเล่น',
     start:'คลิกเพื่อเริ่ม', soundOn:'🔊 เปิดเสียงด้วยนะ', done:'เสร็จแล้ว', skip:'ข้าม ▶', locked:'ล็อกอยู่',
-    how:'วิธีเล่น', st1:'ตัวเลขสีแดง = คาร์บอนที่เครื่องนั้นปล่อย', st2:'คลิกเครื่อง แล้วกด "แก้เลย" (ใช้เหรียญ)', st3:'ลดคาร์บอนให้ต่ำกว่า 60 ก่อนหมดเวลา',
+    how:'วิธีเล่น', st1:'ป้ายแดงรูปควัน = คาร์บอนที่เครื่องนั้นปล่อย', st2:'คลิกเครื่อง แล้วกด "แก้เลย" (ใช้เหรียญ)', st3:'ลดคาร์บอนให้ต่ำกว่า 60 ก่อนหมดเวลา',
     emits:'ปล่อยคาร์บอน', fixLbl:'วิธีแก้', cut:'ลด', fixIt:c=>`แก้เลย · 💰${c}`, noMoney:'เหรียญไม่พอ', fixed:'✔ แก้แล้ว',
     s1tag:'คาร์บอนที่โรงงานปล่อยเอง', s2tag:'???', s3tag:'???',
     win:p=>`ลดคาร์บอนได้ ${p}%!`, none:'ยังไม่ได้ลดเลย', wait:'แต่เดี๋ยวก่อน...',
@@ -341,6 +378,10 @@ const T = {
     unlockHint:'ถามทีมงานของเราเพื่อปลดล็อก',
     ask:'Scope 2 และ 3 ยังซ่อนอยู่', askSub:'คุยกับทีมงานของเราเพื่อปลดล็อกส่วนที่ใหญ่ที่สุด', again:'เล่นอีกครั้ง',
     ranks:['ลองอีกนิด','ทำได้ดี!','ฮีโร่ลดคาร์บอน!'],
+    phoneLbl:'ฝากเบอร์โทรไว้ให้ทีมงานติดต่อกลับ (ไม่บังคับ)', phonePh:'08x-xxx-xxxx', save:'บันทึก', saved:'บันทึกแล้ว ขอบคุณค่ะ ✓', phoneBad:'กรุณาใส่เบอร์ 9–10 หลัก ขึ้นต้นด้วย 0',
+    phoneNote:'เบอร์จะเก็บไว้ในเครื่องนี้เท่านั้น เพื่อให้ทีมงานติดต่อกลับ', backStart:'⟲ กลับหน้าเริ่ม',
+    staffTitle:'ข้อมูลผู้เล่น (สำหรับทีมงาน)', playsDone:'เล่นจบแล้ว', phonesSaved:'ฝากเบอร์', csv:'⬇ ดาวน์โหลด CSV', clearAll:'ลบทั้งหมด', close:'ปิด',
+    clearConfirm:'ลบข้อมูลผู้เล่นทั้งหมดในเครื่องนี้? กู้คืนไม่ได้', staffHow:'เปิดหน้านี้: กด S หรือแตะชื่อเกมมุมซ้ายบน 5 ครั้ง', colTime:'เวลา', colPhone:'เบอร์โทร', colCut:'ลด Scope 1', noRecs:'ยังไม่มีข้อมูล', times:'ครั้ง',
     src:{
       boiler:['หม้อไอน้ำถ่านหิน','เผาถ่านหินเพื่อทำไอน้ำ','เปลี่ยนเป็นหม้อไอน้ำชีวมวล'],
       truck:['รถบรรทุกของบริษัท','เผาน้ำมันดีเซลทุกเที่ยว','เปลี่ยนเป็นรถบรรทุกไฟฟ้า (EV)'],
@@ -354,7 +395,7 @@ const T = {
     title:'Fix the Factory', coins:'coins', unit:'tons CO₂', meter:'Carbon from the factory (Scope 1)', goalTag:'🎯 Goal: below 60',
     bigTitle:'Fix this <em>factory</em>!', sub:'A quick game. No experience needed. A narrator guides you.',
     start:'Click to start', soundOn:'🔊 Sound on, please', done:"I'm done", skip:'Skip ▶', locked:'Locked',
-    how:'How to play', st1:'Red number = carbon that machine releases', st2:'Click a machine, press "Fix it" (costs coins)', st3:'Get the carbon below 60 before time runs out',
+    how:'How to play', st1:'Red smoke label = carbon that machine releases', st2:'Click a machine, press "Fix it" (costs coins)', st3:'Get the carbon below 60 before time runs out',
     emits:'Releases', fixLbl:'Fix', cut:'Cuts', fixIt:c=>`Fix it · 💰${c}`, noMoney:'Not enough coins', fixed:'✔ Fixed',
     s1tag:'Carbon the factory makes itself', s2tag:'???', s3tag:'???',
     win:p=>`Carbon cut by ${p}%!`, none:'Nothing cut yet', wait:'But wait...',
@@ -363,6 +404,10 @@ const T = {
     unlockHint:'Ask our team to unlock them',
     ask:'Scope 2 & 3 are still hidden', askSub:'Talk to our team to unlock the biggest part', again:'Play again',
     ranks:['Keep trying','Nice work!','Carbon Hero!'],
+    phoneLbl:'Leave your phone number for our team (optional)', phonePh:'08x-xxx-xxxx', save:'Save', saved:'Saved, thank you ✓', phoneBad:'Please enter 9–10 digits starting with 0',
+    phoneNote:'Your number stays on this device only, so our team can contact you.', backStart:'⟲ Back to start',
+    staffTitle:'Player records (staff only)', playsDone:'Games completed', phonesSaved:'Numbers left', csv:'⬇ Download CSV', clearAll:'Delete all', close:'Close',
+    clearConfirm:'Delete all player records on this device? This cannot be undone.', staffHow:'Open this panel: press S, or tap the game title (top-left) 5 times', colTime:'Time', colPhone:'Phone', colCut:'Scope 1 cut', noRecs:'No records yet', times:'',
     src:{
       boiler:['Coal boiler','Burns coal to make steam','Switch to a biomass boiler'],
       truck:['Company trucks','Burn diesel on every trip','Switch to electric (EV) trucks'],
@@ -491,7 +536,7 @@ function buildPins(){
   let g='';
   SRC.forEach(s=>{
     const[x,y]=P(...PIN_AT[s.id]);
-    g+=`<g class="pin" id="pin-${s.id}" transform="translate(${x},${y})"><g class="pinpulse"><rect x="-58" y="-30" width="116" height="52" rx="26" fill="var(--red)"/><path d="M-10 21 L0 34 L10 21Z" fill="var(--red)"/><text class="tag" y="5" text-anchor="middle" fill="#fff"></text></g></g>`;
+    g+=`<g class="pin" id="pin-${s.id}" transform="translate(${x},${y})"><g class="pinpulse"><rect x="-58" y="-30" width="116" height="52" rx="26" fill="var(--red)"/><path d="M-10 21 L0 34 L10 21Z" fill="var(--red)"/><g class="smoke" fill="#fff"><circle cx="-33" cy="-1" r="7"/><circle cx="-25" cy="-8" r="9"/><circle cx="-16" cy="-2" r="7"/><rect x="-36" y="-2" width="24" height="9" rx="4.5"/></g><text class="tag" y="5" text-anchor="middle" fill="#fff"></text></g></g>`;
   });
   // pointing hand that teaches the first click (sits beside the biggest polluter)
   const[hx,hy]=P(...PIN_AT.boiler);
@@ -577,9 +622,12 @@ function render(){
   const n=$('total'); n.firstChild.nodeValue=tot; n.classList.toggle('good',tot<GOAL);
   $('bar').style.width=(tot/BASE*100)+'%';
   SRC.forEach(s=>{
-    const f=S.fixed.has(s.id), v=f?s.e-s.cut:s.e, col=f?'var(--s1)':'var(--red)';
+    // red smoke label = emission; tapped (not yet fixed) = its price; fixed = green tick
+    const f=S.fixed.has(s.id), v=f?s.e-s.cut:s.e, price=!f&&S.sel===s.id&&S.phase==='play';
+    const col=f?'var(--s1)':price?'#f2b01e':'var(--red)';
     const p=$('pin-'+s.id); p.querySelector('rect').setAttribute('fill',col); p.querySelector('path').setAttribute('fill',col);
-    const tag=p.querySelector('.tag'); tag.textContent=(f?'✔ ':'')+v; tag.setAttribute('fill','#fff');
+    p.querySelector('.smoke').style.display=(f||price)?'none':'';
+    const tag=p.querySelector('.tag'); tag.textContent=f?'✔ '+v:price?'💰'+s.cost:v; tag.setAttribute('x',(f||price)?0:12); tag.setAttribute('fill',price?'#3b2a00':'#fff');
     const g=document.querySelector(`.src[data-id="${s.id}"]`); g.classList.toggle('fixed',f); g.classList.toggle('sel',S.sel===s.id);
   });
   $('hand').classList.toggle('on', S.phase==='play' && !S.sel && S.fixed.size===0);
@@ -592,6 +640,8 @@ function render(){
 function applyLang(){
   const t=L(); document.documentElement.lang=S.lang;
   document.querySelectorAll('[data-i18n]').forEach(el=>el.innerHTML=t[el.dataset.i18n]);
+  document.querySelectorAll('[data-ph]').forEach(el=>el.placeholder=t[el.dataset.ph]);
+  if($('staff').classList.contains('on')) renderStaff();
   document.querySelectorAll('#lang span').forEach(s=>s.classList.toggle('on',s.dataset.l===S.lang));
   $('fenceTxt').textContent=t.fence; $('q2').textContent=t.q2; $('q3').textContent=t.q3; $('handTxt').textContent=t.click;
   if(S.phase==='end') fillEnd();
@@ -653,9 +703,9 @@ async function endGame(){
   await say('reveal'); if(!ok()) return;
   hl('s2'); await say('s2'); if(!ok()) return;
   hl('s3'); await say('s3'); if(!ok()) return;
-  hl(''); setPhase('end'); fillEnd();
+  hl(''); setPhase('end'); fillEnd(); logPlay(); resetPhoneForm();
   await say('end'); if(!ok()) return;
-  later(()=>reset(),30000);
+  armAutoReset(45000);
 }
 function fillEnd(){
   const p=pct(), r=L().ranks; $('rank').textContent=r[total()<GOAL?2:p>=25?1:0]; $('cutLine').textContent=L().cutLine(p);
@@ -678,16 +728,67 @@ function toggleMute(){ S.muted=!S.muted; if(cur) cur.muted=S.muted; try{localSto
 $('startBtn').onclick=startGame;
 $('doneBtn').onclick=()=>endGame();
 $('againBtn').onclick=startGame;
+$('homeBtn').onclick=()=>reset();
+$('homeTop').onclick=()=>reset();
 $('attract').addEventListener('click',e=>{ if(e.target.id!=='startBtn') startGame(); });
 $('lang').onclick=()=>{ S.lang=S.lang==='th'?'en':'th'; try{localStorage.setItem('ftf-lang',S.lang)}catch(e){} applyLang(); };
 $('mute').onclick=toggleMute;
 addEventListener('keydown',e=>{               // staff shortcuts
+  if(e.target.closest && e.target.closest('input,textarea')) return;   // typing a phone number is not a shortcut
   const k=e.key.toLowerCase();
+  if(k==='s'){ openStaff(); return; }
   if(k==='r') reset();
   if(k==='l') $('lang').click();
   if(k==='m') toggleMute();
   if(k==='f') document.documentElement.requestFullscreen?.();
 });
+
+
+/* ---------- players: completed-game count + optional phone numbers, kept on this device ---------- */
+const DB_KEY = 'ftf-records';
+function loadRecs(){ try{ return JSON.parse(localStorage.getItem(DB_KEY) || '[]'); }catch(e){ return []; } }
+function saveRecs(r){ try{ localStorage.setItem(DB_KEY, JSON.stringify(r)); }catch(e){} }
+function logPlay(){ const r = loadRecs(); r.push({t:new Date().toISOString(), cut:pct(), lang:S.lang, phone:''}); saveRecs(r); S.recIdx = r.length - 1; }
+function resetPhoneForm(){ const i=$('phone'); i.value=''; i.disabled=false; $('saveBtn').disabled=false; $('pmsg').textContent=''; $('pmsg').className='pmsg'; S.phoneSaved=false; }
+$('phoneForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const digits = $('phone').value.replace(/\D/g, ''), m = $('pmsg');
+  if(!/^0\d{8,9}$/.test(digits)){ m.textContent = L().phoneBad; m.className = 'pmsg bad'; return; }
+  const r = loadRecs(); if(r[S.recIdx]) { r[S.recIdx].phone = digits; saveRecs(r); }
+  $('phone').value = digits.replace(/^(\d{3})(\d{3})(\d+)$/, '$1-$2-$3'); $('phone').disabled = true; $('saveBtn').disabled = true;
+  m.textContent = L().saved; m.className = 'pmsg ok'; S.phoneSaved = true; $('phone').blur();
+});
+// back to the start screen after a quiet spell, but never while someone is typing a number
+function armAutoReset(ms){
+  later(() => {
+    const el = $('phone');
+    if(document.activeElement === el || (el.value && !S.phoneSaved) || $('staff').classList.contains('on')) return armAutoReset(15000);
+    reset();
+  }, ms);
+}
+function openStaff(){ renderStaff(); $('staff').classList.add('on'); }
+function renderStaff(){
+  const t = L(), r = loadRecs(), withPhone = r.filter(x => x.phone).length;
+  $('sstats').textContent = `${t.playsDone}: ${r.length} ${t.times}  ·  ${t.phonesSaved}: ${withPhone}`;
+  const loc = S.lang === 'th' ? 'th-TH' : 'en-GB';
+  $('stable').innerHTML = r.length ? `<table><tr><th>#</th><th>${t.colTime}</th><th>${t.colPhone}</th><th>${t.colCut}</th></tr>` +
+    r.map((x, i) => [i + 1, new Date(x.t).toLocaleString(loc), x.phone || '–', x.cut + '%']).reverse()
+     .map(c => `<tr>${c.map(v => `<td>${v}</td>`).join('')}</tr>`).join('') + '</table>'
+    : `<div style="padding:20px">${t.noRecs}</div>`;
+}
+$('closeStaff').onclick = () => $('staff').classList.remove('on');
+$('csvBtn').onclick = () => {
+  const rows = [['time', 'phone', 'scope1_cut_percent', 'language'], ...loadRecs().map(x => { const d = new Date(x.t), z = n => String(n).padStart(2, '0');
+    return [`${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`,
+            x.phone ? x.phone.replace(/^(\d{3})(\d{3})(\d+)$/, '$1-$2-$3') : '', x.cut, x.lang]; })];   // dashes keep the leading 0 in Excel
+  const blob = new Blob(['﻿' + rows.map(r => r.join(',')).join('\r\n')], {type: 'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `booth-players-${new Date().toISOString().slice(0, 10)}.csv`; document.body.appendChild(a); a.click(); a.remove();
+};
+$('clearBtn').onclick = () => { if(confirm(L().clearConfirm)){ try{ localStorage.removeItem(DB_KEY); }catch(e){} renderStaff(); } };
+// staff panel without a keyboard (iPad): tap the game title 5 times quickly
+(() => { let n = 0, t0 = 0; document.querySelector('.brand').addEventListener('click', () => {
+  const now = Date.now(); n = (now - t0 < 2500) ? n + 1 : 1; t0 = now; if(n >= 5){ n = 0; openStaff(); } }); })();
 
 buildPlant(); buildSky(); buildPins(); buildOuter(); buildBoard(); applyLang();
 // keep a copy on the device so the home-screen app works with no internet (not used by the single offline file)
